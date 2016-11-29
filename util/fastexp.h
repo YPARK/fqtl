@@ -42,8 +42,8 @@
 #define __FAST_EXP_H_
 
 #include <stdint.h>
-#include "utils/cast.h"
-#include "utils/sse.h"
+#include "cast.h"
+#include "sse.h"
 
 // Underflow of exponential is common practice in numerical routines,
 // so handle it here.

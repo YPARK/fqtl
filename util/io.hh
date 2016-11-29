@@ -1,8 +1,8 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Sparse"
-#include "utils/gzstream.hh"
-#include "utils/strbuf.hh"
-#include "utils/util.hh"
+#include "gzstream.hh"
+#include "strbuf.hh"
+#include "util.hh"
 #include <fstream>
 #include <iostream>
 #include <memory>

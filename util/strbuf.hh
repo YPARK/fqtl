@@ -1,4 +1,4 @@
-#include "utils/util.hh"
+#include "util.hh"
 #include <cctype>
 #include <cstdio>
 

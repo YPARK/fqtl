@@ -1,6 +1,6 @@
-#include "utils/fastexp.h"
-#include "utils/fastgamma.h"
-#include "utils/fastlog.h"
+#include "fastexp.h"
+#include "fastgamma.h"
+#include "fastlog.h"
 #include <cmath>
 #include <random>
 
@@ -61,19 +61,8 @@ struct log1pExp_op_t {
   const T large_value = 20.0;  // exp(20) is too big
 };
 
-////////////////////////////////////////////////////////////////
-// fast log Gamma(x)
-//   constexpr static T s = 0.0810614667f;
-//   explicit gammaln_op_t() {}
-//   const T operator()(const T& x) const {
-// #ifdef DEBUG
-//     ASSERT(x + TOL > 0.0f, "x must be postive in gammaln : " << x);
-// #endif
-//     T xx = x + TOL;
-//     T ret = (xx + 0.5f) * fasterlog(1.0 +xx) - xx - fasterlog(xx) - s;
-//     return ret;
-//   }
-
+//////////////////////////////////////////////////////////////
+// log gamma(x)
 template <typename T>
 struct gammaln_op_t {
   const T operator()(const T& x) const {

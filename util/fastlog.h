@@ -42,7 +42,7 @@
 #define __FAST_LOG_H_
 
 #include <cstdint>
-#include "utils/sse.h"
+#include "sse.h"
 
 static inline float 
 fastlog2 (float x)

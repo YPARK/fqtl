@@ -1,7 +1,7 @@
-#include "engine/mathutil.hh"
+#include "mathutil.hh"
 
-#ifndef PARAM_ROW_SPIKE_SLAB_EB_HH_
-#define PARAM_ROW_SPIKE_SLAB_EB_HH_
+#ifndef PARAM_ROW_SPIKE_SLAB_HH_
+#define PARAM_ROW_SPIKE_SLAB_HH_
 
 template <typename T, typename S>
 struct param_row_spike_slab_t {

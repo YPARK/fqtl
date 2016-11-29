@@ -1,8 +1,8 @@
 #include "eigen3/Eigen/Dense"
 #include "eigen3/Eigen/Sparse"
-#include "utils/eigen_util.hh"
-#include "utils/param_check.hh"
-#include "utils/util.hh"
+#include "eigen_util.hh"
+#include "param_check.hh"
+#include "util.hh"
 #include <fstream>
 #include <iomanip>
 #include <iostream>

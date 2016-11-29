@@ -42,8 +42,8 @@
 #define __FAST_GAMMA_H_
 
 #include <cstdint>
-#include "utils/sse.h"
-#include "utils/fastlog.h"
+#include "sse.h"
+#include "fastlog.h"
 
 /* gamma/digamma functions only work for positive inputs */
 

@@ -1,19 +1,18 @@
 #include "mathutil.hh"
-
-#ifndef PARAM_SPIKE_SLAB_HH_
-#define PARAM_SPIKE_SLAB_HH_
+#ifndef FQTL_PARAM_TWOMIXTURE_HH
+#define FQTL_PARAM_TWOMIXTURE_HH
 
 template<typename T, typename S>
-struct param_spike_slab_t {
+struct param_two_mixture_t {
   typedef T data_t;
   typedef typename T::Scalar scalar_t;
   typedef typename T::Index index_t;
-  typedef adam_t<T, scalar_t> grad_adam_t;
-  typedef tag_param_spike_slab sgd_tag;
+  typedef adam_t <T, scalar_t> grad_adam_t;
+  typedef tag_param_two_mixture sgd_tag;
   typedef S sparsity_tag;
 
   template<typename Opt>
-  explicit param_spike_slab_t(const index_t n1, const index_t n2, const Opt &opt)
+  explicit param_two_mixture_t(const index_t n1, const index_t n2, const Opt &opt)
       : nrow(n1),
         ncol(n2),
         alpha(nrow, ncol),
@@ -89,8 +88,8 @@ struct param_spike_slab_t {
   grad_adam_t adam_alpha_aux;
   grad_adam_t adam_beta;
   grad_adam_t adam_gamma_aux;
-  adam_t<scalar_t, scalar_t> adam_pi_aux;
-  adam_t<scalar_t, scalar_t> adam_tau_aux;
+  adam_t <scalar_t, scalar_t> adam_pi_aux;
+  adam_t <scalar_t, scalar_t> adam_tau_aux;
 
   ////////////////////////////////////////////////////////////////
   // helper functors
@@ -188,8 +187,7 @@ struct param_spike_slab_t {
     explicit grad_gamma_chain_rule_t(const scalar_t &_tau_aux) : tau_aux(_tau_aux) {}
     const scalar_t operator()(const scalar_t &g_aux) const {
       const scalar_t lo = g_aux - tau_aux;
-      if (lo > large_exp_value)
-        return fasterexp(-lo) / (one_val + fasterexp(-lo));
+      if (lo > large_exp_value) return fasterexp(-lo) / (one_val + fasterexp(-lo));
       return one_val / (one_val + fasterexp(lo));
     }
     const scalar_t &tau_aux;
@@ -233,7 +231,7 @@ struct param_spike_slab_t {
 
 // clear contents
 template<typename Parameter>
-void impl_initialize_param(Parameter &P, const tag_param_spike_slab) {
+void impl_initialize_param(Parameter &P, const tag_param_two_mixture) {
   setConstant(P.beta, 0.0);
   setConstant(P.grad_alpha_aux, 0.0);
   setConstant(P.grad_beta, 0.0);
@@ -252,12 +250,12 @@ void impl_initialize_param(Parameter &P, const tag_param_spike_slab) {
 
 // factory functions
 template<typename scalar_t, typename Index, typename Opt>
-auto make_dense_spike_slab(const Index n1, const Index n2, const Opt &opt) {
+auto make_dense_two_mixture(const Index n1, const Index n2, const Opt &opt) {
   using Mat = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
-  using Param = param_spike_slab_t<Mat, tag_param_dense>;
+  using Param = param_two_mixture_t<Mat, tag_param_dense>;
 
   Param ret(n1, n2, opt);
-  impl_initialize_param(ret, tag_param_spike_slab());
+  impl_initialize_param(ret, tag_param_two_mixture());
   resolve_param(ret);
   resolve_hyperparam(ret);
 
@@ -266,13 +264,13 @@ auto make_dense_spike_slab(const Index n1, const Index n2, const Opt &opt) {
 
 // factory functions
 template<typename scalar_t, typename Index, typename Opt>
-auto make_dense_spike_slab_ptr(const Index n1, const Index n2, const Opt &opt) {
+auto make_dense_two_mixture_ptr(const Index n1, const Index n2, const Opt &opt) {
   using Mat = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
-  using Param = param_spike_slab_t<Mat, tag_param_dense>;
+  using Param = param_two_mixture_t<Mat, tag_param_dense>;
 
   auto ret_ptr = std::make_shared<Param>(n1, n2, opt);
   Param &ret = *ret_ptr.get();
-  impl_initialize_param(ret, tag_param_spike_slab());
+  impl_initialize_param(ret, tag_param_two_mixture());
   resolve_param(ret);
   resolve_hyperparam(ret);
 
@@ -281,12 +279,12 @@ auto make_dense_spike_slab_ptr(const Index n1, const Index n2, const Opt &opt) {
 
 // initialize non-zeroness by adjacency A
 template<typename scalar_t, typename Derived, typename Opt>
-auto make_sparse_spike_slab(const Eigen::SparseMatrixBase<Derived> &A, const Opt &opt) {
+auto make_sparse_two_mixture(const Eigen::SparseMatrixBase <Derived> &A, const Opt &opt) {
   const auto n1 = A.rows();
   const auto n2 = A.cols();
 
   using Mat = Eigen::SparseMatrix<scalar_t, Eigen::ColMajor>;
-  using Param = param_spike_slab_t<Mat, tag_param_sparse>;
+  using Param = param_two_mixture_t<Mat, tag_param_sparse>;
 
   Param ret(n1, n2, opt);
   const scalar_t eps = 1e-4;
@@ -303,7 +301,7 @@ auto make_sparse_spike_slab(const Eigen::SparseMatrixBase<Derived> &A, const Opt
   initialize(A, ret.grad_beta, eps);
   initialize(A, ret.grad_gamma_aux, eps);
 
-  impl_initialize_param(ret, tag_param_spike_slab());
+  impl_initialize_param(ret, tag_param_two_mixture());
   resolve_param(ret);
   resolve_hyperparam(ret);
   return ret;
@@ -311,7 +309,7 @@ auto make_sparse_spike_slab(const Eigen::SparseMatrixBase<Derived> &A, const Opt
 
 // update parameters by calculated stochastic gradient
 template<typename Parameter, typename scalar_t>
-void impl_update_param_sgd(Parameter &P, const scalar_t rate, const tag_param_spike_slab) {
+void impl_update_param_sgd(Parameter &P, const scalar_t rate, const tag_param_two_mixture) {
   P.alpha_aux += update_adam(P.adam_alpha_aux, P.grad_alpha_aux) * rate;
   P.beta += update_adam(P.adam_beta, P.grad_beta) * rate;
   P.gamma_aux += update_adam(P.adam_gamma_aux, P.grad_gamma_aux) * rate;
@@ -319,7 +317,7 @@ void impl_update_param_sgd(Parameter &P, const scalar_t rate, const tag_param_sp
 }
 
 template<typename Parameter, typename scalar_t>
-void impl_update_hyperparam_sgd(Parameter &P, const scalar_t rate, const tag_param_spike_slab) {
+void impl_update_hyperparam_sgd(Parameter &P, const scalar_t rate, const tag_param_two_mixture) {
   P.pi_aux += update_adam(P.adam_pi_aux, P.grad_pi_aux) * rate;
   P.tau_aux += update_adam(P.adam_tau_aux, P.grad_tau_aux) * rate;
   resolve_hyperparam(P);
@@ -327,7 +325,7 @@ void impl_update_hyperparam_sgd(Parameter &P, const scalar_t rate, const tag_par
 
 // mean and variance
 template<typename Parameter>
-void impl_resolve_param(Parameter &P, const tag_param_spike_slab) {
+void impl_resolve_param(Parameter &P, const tag_param_two_mixture) {
   P.alpha = P.alpha_aux.unaryExpr(P.resolve_spike_op);
   P.theta = P.alpha.cwiseProduct(P.beta);
   P.gamma = P.gamma_aux.unaryExpr(P.resolve_prec_op);
@@ -335,23 +333,19 @@ void impl_resolve_param(Parameter &P, const tag_param_spike_slab) {
 }
 
 template<typename Parameter>
-void impl_resolve_hyperparam(Parameter &P, const tag_param_spike_slab) {
-  if (P.pi_aux > P.pi_lodds_ub)
-    P.pi_aux = P.pi_lodds_ub;
-  if (P.pi_aux < P.pi_lodds_lb)
-    P.pi_aux = P.pi_lodds_lb;
+void impl_resolve_hyperparam(Parameter &P, const tag_param_two_mixture) {
+  if (P.pi_aux > P.pi_lodds_ub) P.pi_aux = P.pi_lodds_ub;
+  if (P.pi_aux < P.pi_lodds_lb) P.pi_aux = P.pi_lodds_lb;
 
-  if (P.tau_aux > P.tau_lodds_ub)
-    P.tau_aux = P.tau_lodds_ub;
-  if (P.tau_aux < P.tau_lodds_lb)
-    P.tau_aux = P.tau_lodds_lb;
+  if (P.tau_aux > P.tau_lodds_ub) P.tau_aux = P.tau_lodds_ub;
+  if (P.tau_aux < P.tau_lodds_lb) P.tau_aux = P.tau_lodds_lb;
 
   P.pi_val = P.resolve_spike_op(0.0);
   P.tau_val = P.resolve_prec_prior_op();
 }
 
 template<typename Parameter, typename scalar_t>
-void impl_perturb_param(Parameter &P, const scalar_t sd, const tag_param_spike_slab) {
+void impl_perturb_param(Parameter &P, const scalar_t sd, const tag_param_two_mixture) {
   std::mt19937 rng;
   std::normal_distribution<scalar_t> Norm;
   auto rnorm = [&rng, &Norm, &sd](const auto &x) { return sd * Norm(rng); };
@@ -367,7 +361,7 @@ void impl_perturb_param(Parameter &P, const scalar_t sd, const tag_param_spike_s
 }
 
 template<typename Parameter>
-void impl_check_nan_param(Parameter &P, const tag_param_spike_slab) {
+void impl_check_nan_param(Parameter &P, const tag_param_two_mixture) {
   auto is_nan = [](const auto &x) { return !std::isfinite(x); };
   auto num_nan = [&is_nan](const auto &M) { return M.unaryExpr(is_nan).sum(); };
   ASSERT(num_nan(P.alpha) == 0, "found in alpha");
@@ -377,30 +371,30 @@ void impl_check_nan_param(Parameter &P, const tag_param_spike_slab) {
 }
 
 template<typename Parameter>
-const auto &impl_mean_param(Parameter &P, const tag_param_spike_slab) {
+const auto &impl_mean_param(Parameter &P, const tag_param_two_mixture) {
   return P.theta;
 }
 
 template<typename Parameter>
-auto impl_log_odds_param(Parameter &P, const tag_param_spike_slab) {
+auto impl_log_odds_param(Parameter &P, const tag_param_two_mixture) {
   return P.alpha_aux.unaryExpr([&P](const auto &x) { return P.pi_aux + x; });
 }
 
 template<typename Parameter>
-const auto &impl_var_param(Parameter &P, const tag_param_spike_slab) {
+const auto &impl_var_param(Parameter &P, const tag_param_two_mixture) {
   return P.theta_var;
 }
 
 ////////////////////////////////////////////////////////////////
 // evaluate stochastic gradient descent step
 template<typename Parameter, typename M1, typename M2, typename M3>
-void impl_eval_param_sgd(Parameter &P, const M1 &G1, const M2 &G2, const M3 &Nobs, const tag_param_spike_slab) {
+void impl_eval_param_sgd(Parameter &P, const M1 &G1, const M2 &G2, const M3 &Nobs, const tag_param_two_mixture) {
   ////////////////////////////////
   // gradient w.r.t. alpha
   P.grad_alpha_aux = G1.cwiseProduct(P.beta) +
       G2.cwiseProduct(P.gamma.cwiseInverse() + P.alpha.binaryExpr(P.beta, P.grad_alpha_g2_op));
 
-  // prior udpate with adpative tau
+  // prior update with adaptive tau
   P.grad_alpha_aux -= 0.5 * P.beta.binaryExpr(P.gamma, P.grad_alpha_eb_tau_op);
 
   P.grad_alpha_aux += P.alpha_aux.unaryExpr(P.grad_alpha_lo_op);
@@ -437,7 +431,7 @@ void impl_eval_param_sgd(Parameter &P, const M1 &G1, const M2 &G2, const M3 &Nob
 }
 
 template<typename Parameter, typename M1, typename M2, typename M3>
-void impl_eval_hyperparam_sgd(Parameter &P, const M1 &G1, const M2 &G2, const M3 &Nobs, const tag_param_spike_slab) {
+void impl_eval_hyperparam_sgd(Parameter &P, const M1 &G1, const M2 &G2, const M3 &Nobs, const tag_param_two_mixture) {
   using scalar_t = typename Parameter::scalar_t;
   const scalar_t ntot = Nobs.sum();
 
@@ -485,7 +479,7 @@ void impl_eval_hyperparam_sgd(Parameter &P, const M1 &G1, const M2 &G2, const M3
 }
 
 template<typename Parameter>
-void impl_write_param(Parameter &P, const std::string hdr, const std::string gz, const tag_param_spike_slab) {
+void impl_write_param(Parameter &P, const std::string hdr, const std::string gz, const tag_param_two_mixture) {
   write_data_file((hdr + ".theta" + gz), P.theta);
   write_data_file((hdr + ".theta_var" + gz), P.theta_var);
   typename Parameter::data_t temp = P.alpha_aux.unaryExpr([&P](const auto &x) { return P.pi_aux + x; });
@@ -498,4 +492,4 @@ void impl_write_param(Parameter &P, const std::string hdr, const std::string gz,
                << P.tau_val << " [" << std::setw(10) << P.tau_aux << "]");
 }
 
-#endif
+#endif //FQTL_PARAM_TWOMIXTURE_HH
