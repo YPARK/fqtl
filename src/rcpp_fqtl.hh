@@ -18,8 +18,6 @@
 #include "residual.hh"
 #include "shared_effect.hh"
 
-using namespace Rcpp::_;
-
 #ifndef RCPP_FQT_HH_
 #define RCPP_FQT_HH_
 
@@ -481,7 +479,7 @@ Rcpp::List rcpp_fqtl_adj_list(const Rcpp::NumericVector& d1_loc, const Rcpp::Num
     }
   }
 
-  return Rcpp::List::create(_["d1"] = Rcpp::wrap(left), _["d2"] = Rcpp::wrap(right));
+  return Rcpp::List::create(Rcpp::_["d1"] = Rcpp::wrap(left), Rcpp::_["d2"] = Rcpp::wrap(right));
 }
 
 ////////////////////////////////////////////////////////////////
@@ -493,19 +491,19 @@ Rcpp::List param_rcpp_list(const T& param) {
 
 template <typename T>
 Rcpp::List impl_param_rcpp_list(const T& param, const tag_param_spike_slab) {
-  return Rcpp::List::create(_["theta"] = mean_param(param), _["theta.var"] = var_param(param),
-                            _["lodds"] = log_odds_param(param));
+  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param), Rcpp::_["theta.var"] = var_param(param),
+                            Rcpp::_["lodds"] = log_odds_param(param));
 }
 
 template <typename T>
 Rcpp::List impl_param_rcpp_list(const T& param, const tag_param_col_spike_slab) {
-  return Rcpp::List::create(_["theta"] = mean_param(param), _["theta.var"] = var_param(param),
-                            _["lodds"] = log_odds_param(param));
+  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param), Rcpp::_["theta.var"] = var_param(param),
+                            Rcpp::_["lodds"] = log_odds_param(param));
 }
 
 template <typename T>
 Rcpp::List impl_param_rcpp_list(const T& param, const tag_param_slab) {
-  return Rcpp::List::create(_["theta"] = mean_param(param), _["theta.var"] = var_param(param));
+  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param), Rcpp::_["theta.var"] = var_param(param));
 }
 
 #endif

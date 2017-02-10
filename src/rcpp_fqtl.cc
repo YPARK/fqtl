@@ -68,10 +68,10 @@ Rcpp::List rcpp_correction_mf(const Mat& yy,       // n x m
                                 _vd2, _vd3, opt);
   }
 
-  return Rcpp::List::create(_["U"] = param_rcpp_list(mf_theta_u), _["V"] = param_rcpp_list(mf_theta_v),
-                            _["mean"] = param_rcpp_list(mean_theta), _["var"] = param_rcpp_list(var_theta),
-                            _["resid.mf"] = param_rcpp_list(theta_resid_mf),
-                            _["resid.full"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["U"] = param_rcpp_list(mf_theta_u), Rcpp::_["V"] = param_rcpp_list(mf_theta_v),
+                            Rcpp::_["mean"] = param_rcpp_list(mean_theta), Rcpp::_["var"] = param_rcpp_list(var_theta),
+                            Rcpp::_["resid.mf"] = param_rcpp_list(theta_resid_mf),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -143,10 +143,10 @@ Rcpp::List rcpp_correction_mf_cis(const Mat& yy,          // n x m
 
   TLOG("Finished MF");
 
-  return Rcpp::List::create(_["U"] = param_rcpp_list(mf_theta_u), _["V"] = param_rcpp_list(mf_theta_v),
-                            _["mean"] = param_rcpp_list(mean_theta), _["var"] = param_rcpp_list(var_theta),
-                            _["resid.mf"] = param_rcpp_list(theta_resid_mf),
-                            _["resid.full"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["U"] = param_rcpp_list(mf_theta_u), Rcpp::_["V"] = param_rcpp_list(mf_theta_v),
+                            Rcpp::_["mean"] = param_rcpp_list(mean_theta), Rcpp::_["var"] = param_rcpp_list(var_theta),
+                            Rcpp::_["resid.mf"] = param_rcpp_list(theta_resid_mf),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -233,12 +233,12 @@ Rcpp::List rcpp_correction_mf_cis_aux(const Mat& yy,              // n x m
 
   TLOG("Finished MF");
 
-  return Rcpp::List::create(_["U"] = param_rcpp_list(mf_theta_u), _["V"] = param_rcpp_list(mf_theta_v),
-                            _["mean.sparse"] = param_rcpp_list(mean_sparse_theta),
-                            _["mean.dense"] = param_rcpp_list(mean_dense_theta), _["var"] = param_rcpp_list(var_theta),
-                            _["resid.mf"] = param_rcpp_list(theta_resid_mf),
-                            _["resid.sparse"] = param_rcpp_list(theta_resid_sparse),
-                            _["resid.full"] = param_rcpp_list(theta_resid_full), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["U"] = param_rcpp_list(mf_theta_u), Rcpp::_["V"] = param_rcpp_list(mf_theta_v),
+                            Rcpp::_["mean.sparse"] = param_rcpp_list(mean_sparse_theta),
+                            Rcpp::_["mean.dense"] = param_rcpp_list(mean_dense_theta), Rcpp::_["var"] = param_rcpp_list(var_theta),
+                            Rcpp::_["resid.mf"] = param_rcpp_list(theta_resid_mf),
+                            Rcpp::_["resid.sparse"] = param_rcpp_list(theta_resid_sparse),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -312,11 +312,11 @@ Rcpp::List rcpp_train_factored_regression(const Mat& yy,        // n x m
     }
   }
 
-  return Rcpp::List::create(_["mean.left"] = param_rcpp_list(mf_theta_u), _["mean.right"] = param_rcpp_list(mf_theta_v),
-                            _["mean.cov"] = param_rcpp_list(c_mean_theta),
-                            _["mean.covt"] = param_rcpp_list(ct_mean_theta), _["var"] = param_rcpp_list(x_var_theta),
-                            _["resid.full"] = param_rcpp_list(theta_resid_full),
-                            _["resid.no.mean"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u), Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
+                            Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["mean.covt"] = param_rcpp_list(ct_mean_theta), Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
+                            Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -393,11 +393,11 @@ Rcpp::List rcpp_train_factored_regression_cis(const Mat& yy,             // n x 
     }
   }
 
-  return Rcpp::List::create(_["mean.left"] = param_rcpp_list(mf_theta_u), _["mean.right"] = param_rcpp_list(mf_theta_v),
-                            _["mean.cov"] = param_rcpp_list(c_mean_theta),
-                            _["mean.covt"] = param_rcpp_list(ct_mean_theta), _["var"] = param_rcpp_list(x_var_theta),
-                            _["resid.full"] = param_rcpp_list(theta_resid_full),
-                            _["resid.no.mean"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u), Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
+                            Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["mean.covt"] = param_rcpp_list(ct_mean_theta), Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
+                            Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -461,10 +461,10 @@ Rcpp::List rcpp_train_regression(const Mat& yy,        // n x m
     }
   }
 
-  return Rcpp::List::create(_["mean"] = param_rcpp_list(mean_theta), _["mean.cov"] = param_rcpp_list(c_mean_theta),
-                            _["mean.covt"] = param_rcpp_list(ct_mean_theta), _["var"] = param_rcpp_list(x_var_theta),
-                            _["resid.full"] = param_rcpp_list(theta_resid_full),
-                            _["resid.no.mean"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta), Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["mean.covt"] = param_rcpp_list(ct_mean_theta), Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
+                            Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -529,10 +529,10 @@ Rcpp::List rcpp_train_regression_cis(const Mat& yy,          // n x m
     }
   }
 
-  return Rcpp::List::create(_["mean"] = param_rcpp_list(mean_theta), _["mean.cov"] = param_rcpp_list(c_mean_theta),
-                            _["mean.covt"] = param_rcpp_list(ct_mean_theta), _["var"] = param_rcpp_list(x_var_theta),
-                            _["resid.full"] = param_rcpp_list(theta_resid_full),
-                            _["resid.no.mean"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta), Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["mean.covt"] = param_rcpp_list(ct_mean_theta), Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
+                            Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -600,10 +600,10 @@ Rcpp::List rcpp_train_regression_cis_cis(const Mat& yy,             // n x m
     }
   }
 
-  return Rcpp::List::create(_["mean"] = param_rcpp_list(mean_theta), _["mean.cov"] = param_rcpp_list(c_mean_theta),
-                            _["mean.covt"] = param_rcpp_list(ct_mean_theta), _["var"] = param_rcpp_list(x_var_theta),
-                            _["resid.full"] = param_rcpp_list(theta_resid_full),
-                            _["resid.no.mean"] = param_rcpp_list(theta_resid_cov), _["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta), Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["mean.covt"] = param_rcpp_list(ct_mean_theta), Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
+                            Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov), Rcpp::_["llik"] = llik_trace);
 }
 
 using namespace Rcpp;
