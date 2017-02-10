@@ -18,7 +18,7 @@
 #include "residual.hh"
 #include "shared_effect.hh"
 
-using namespace Rcpp;
+using namespace Rcpp::_;
 
 #ifndef RCPP_FQT_HH_
 #define RCPP_FQT_HH_
