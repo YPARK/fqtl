@@ -38,6 +38,17 @@ library(Rcpp)
 install_github("ypark/fqtl")
 ```
 
+C++ codes were implemented with C++14.  Please include `-std=c++14` in
+`CFLAGS` and `CXXFLAGS` of `~/.R/Makevars` file.  For instance,
+```
+CFLAGS = -O3 -std=c++14
+CXXFLAGS = -O3 -std=c++14
+```
+
+To speed up matrix-vector multiplication, one can compile codes with
+Intel MKL library.  Currently `RcppEigen` does not support `BLAS` only
+options.
+
 ## Results of GTEx TWAS
 
 Tab-separate files of full TWAS statistics on Alzheimer's disease (AD)
