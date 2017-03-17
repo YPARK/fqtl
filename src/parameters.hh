@@ -2,8 +2,8 @@
 #include "param_check.hh"
 #include "rcpp_util.hh"
 #include "mathutil.hh"
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/SparseCore>
+// #include <eigen3/Eigen/Core>
+// #include <eigen3/Eigen/SparseCore>
 #include <memory>
 
 #ifndef PARAMETERS_HH_

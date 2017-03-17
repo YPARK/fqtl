@@ -1,8 +1,8 @@
 #include "rcpp_util.hh"
 #include <algorithm>
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/SVD>
-#include <eigen3/Eigen/SparseCore>
+// #include <eigen3/Eigen/Core>
+// #include <eigen3/Eigen/SVD>
+// #include <eigen3/Eigen/SparseCore>
 #include <random>
 #include <type_traits>
 #include <vector>
