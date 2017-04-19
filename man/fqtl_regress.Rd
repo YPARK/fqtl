@@ -6,10 +6,10 @@
   association matrix.  More precisely, we model mean parameters of the
   Gaussian distribution by either factored mean
 
-  \deqn{\mathsf{E}[Y] = X \theta_{\mathsf{snp}} \theta_{\mathsf{gene}}^{\top} + C \theta_{\mathsf{cov}} + \theta_{\mathsf{covt}} C }{E[Y] ~ X * theta_snp * theta_gene + C * theta_cov + theta_covt * Ct}
+  \deqn{\mathsf{E}[Y] = X \theta_{\mathsf{snp}} \theta_{\mathsf{gene}}^{\top} + C \theta_{\mathsf{cov}}}{E[Y] ~ X * theta_snp * theta_gene + C * theta_cov}
 
   or independent mean
-  \deqn{\mathsf{E}[Y] = X \theta + C \theta_{\mathsf{cov}} + \theta_{\mathsf{covt}} C }{E[Y] ~ X * theta + C * theta_cov + theta_covt * Ct}
+  \deqn{\mathsf{E}[Y] = X \theta + C \theta_{\mathsf{cov}}}{E[Y] ~ X * theta + C * theta_cov}
 
   and variance
   \deqn{\mathsf{V}[Y] = X_{\mathsf{var}} \theta_{\mathsf{var}}}{V[Y] ~ X.var * theta.var}
@@ -18,12 +18,11 @@
   variance coefficients follow Gaussian distribution.
 }
 \usage{
-fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL,
-             c.mean.t = NULL, x.var = NULL,
+fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
              y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
              c.mean.loc = NULL, cis.dist = 5e5, 
              options = list(model='gaussian', vbiter=1000, tol=1e-8,
-                           gammax=100, rate=0.1, decay=-0.1, pi.ub=-1,
+                           gammax=100, rate=0.01, decay=-0.1, pi.ub=-1,
                            pi.lb=-4, tau.lb=-10, tau.ub=-4,
                            verbose=TRUE))
 }
@@ -34,8 +33,6 @@ fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL,
   \item{factored}{factored mean effect or not (default: FALSE)}
   \item{c.mean}{covariate matrix for mean; \eqn{\eta_{\mathsf{mean}}
       \sim C\theta}{mean ~ c.mean * theta}}
-  \item{c.mean.t}{transposed covariate matrix;
-    \eqn{\eta_{\mathsf{mean}} \sim \theta C}{mean ~ theta * c.mean.t}}
   \item{x.var}{design matrix for variance; \eqn{\eta_{\mathsf{var}}\sim
       X\theta}{var ~ x.var * theta}}
 
@@ -48,11 +45,10 @@ fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL,
   \item{cis.dist}{distance between x and y (default: 5e5)}
 
   \item{options}{a list of options (see below)}
-  \item{model}{ either 'gaussian' (default) or 'gaussian.voom' }
   \item{vbiter}{ max iterations of variational inference (default: 1000)}
   \item{tol}{ tolerance level to determine convergence (default: 1e-8)}
   \item{gammax}{ maximum precision of coefficients (default: 100)}
-  \item{rate}{ learning rate of SGVB (default: 0.1)}
+  \item{rate}{ learning rate of SGVB (default: 0.01)}
   \item{decay}{ decay rate, i.e. rate = pow(t, decay) (default: -0.1)}
   \item{pi.lb}{ lower bound of log-odds of \eqn{\pi_{0}}{pi0} (default: -4)}
   \item{pi.ub}{ upper bound of log-odds of \eqn{\pi_{0}}{pi0} (default: -2)}
@@ -75,7 +71,6 @@ fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL,
   Other covariates
 
   cov            : \code{mean.cov$theta}, \code{mean.cov$theta.var}, \code{mean.cov$lodds}\cr
-  cov.t          : \code{mean.covt$theta}, \code{mean.covt$theta.var}, \code{mean.covt$lodds}\cr
   var            : \code{var$theta}, \code{var$theta.var}\cr
   log-likelihood : \code{llik}
 }

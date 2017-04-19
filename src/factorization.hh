@@ -4,9 +4,9 @@
 #include <memory>
 #include <type_traits>
 
+#include "eigen_util.hh"
 #include "gaus_repr.hh"
 #include "parameters.hh"
-#include "eigen_util.hh"
 #include "rcpp_util.hh"
 
 #ifndef FACTORIZATION_HH_
@@ -19,38 +19,45 @@ template <typename UParam, typename VParam, typename Scalar, typename Matrix>
 struct get_factorization_type;
 
 template <typename UParam, typename VParam, typename Scalar>
-struct get_factorization_type<UParam, VParam, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
+struct get_factorization_type<
+    UParam, VParam, Scalar,
+    Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> {
   using type = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
 };
 
 template <typename UParam, typename VParam, typename Scalar>
-struct get_factorization_type<UParam, VParam, Scalar, Eigen::SparseMatrix<Scalar> > {
+struct get_factorization_type<UParam, VParam, Scalar,
+                              Eigen::SparseMatrix<Scalar>> {
   using type = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
 };
 
 template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta(const Eigen::MatrixBase<Derived>& data, UParam& u, VParam& v) {
+auto make_factorization_eta(const Eigen::MatrixBase<Derived> &data, UParam &u,
+                            VParam &v) {
   using Scalar = typename Derived::Scalar;
   using Fact = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
   return Fact(data.derived(), u, v);
 }
 
 template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta(const Eigen::SparseMatrixBase<Derived>& data, UParam& u, VParam& v) {
+auto make_factorization_eta(const Eigen::SparseMatrixBase<Derived> &data,
+                            UParam &u, VParam &v) {
   using Scalar = typename Derived::Scalar;
   using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
   return Fact(data.derived(), u, v);
 }
 
 template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta_ptr(const Eigen::MatrixBase<Derived>& data, UParam& u, VParam& v) {
+auto make_factorization_eta_ptr(const Eigen::MatrixBase<Derived> &data,
+                                UParam &u, VParam &v) {
   using Scalar = typename Derived::Scalar;
   using Fact = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
   return std::make_shared<Fact>(data.derived(), u, v);
 }
 
 template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta_ptr(const Eigen::SparseMatrixBase<Derived>& data, UParam& u, VParam& v) {
+auto make_factorization_eta_ptr(const Eigen::SparseMatrixBase<Derived> &data,
+                                UParam &u, VParam &v) {
   using Scalar = typename Derived::Scalar;
   using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
   return std::make_shared<Fact>(data.derived(), u, v);
@@ -64,20 +71,10 @@ struct factorization_t {
   using Scalar = typename DataMat::Scalar;
   using Index = typename DataMat::Index;
 
-  explicit factorization_t(const DataMat& data, UParam& u, VParam& v)
-      : Eta(make_gaus_repr(data)),
-        U(u),
-        V(v),
-        n(U.rows()),
-        m(V.rows()),
-        k(U.cols()),
-        nobs_u(n, k),
-        nobs_v(m, k),
-        u_sq(n, k),
-        v_sq(m, k),
-        grad_u_mean(n, k),
-        grad_u_var(n, k),
-        grad_v_mean(m, k),
+  explicit factorization_t(const DataMat &data, UParam &u, VParam &v)
+      : Eta(make_gaus_repr(data)), U(u), V(v), n(U.rows()), m(V.rows()),
+        k(U.cols()), nobs_u(n, k), nobs_v(m, k), u_sq(n, k), v_sq(m, k),
+        grad_u_mean(n, k), grad_u_var(n, k), grad_v_mean(m, k),
         grad_v_var(m, k) {
     copy_matrix(mean_param(u), nobs_u);
     copy_matrix(mean_param(v), nobs_v);
@@ -108,16 +105,22 @@ struct factorization_t {
   void jitter(const Scalar sd) {
     perturb_param(U, sd);
     perturb_param(V, sd);
-
     resolve_param(U);
     resolve_param(V);
+    resolve();
+  }
 
+  template <typename Rng> void jitter(const Scalar sd, Rng &rng) {
+    perturb_param(U, sd, rng);
+    perturb_param(V, sd, rng);
+    resolve_param(U);
+    resolve_param(V);
     resolve();
   }
 
   Repr Eta;
-  UParam& U;
-  VParam& V;
+  UParam &U;
+  VParam &V;
 
   const Index n;
   const Index m;
@@ -134,23 +137,23 @@ struct factorization_t {
   VParamMat grad_v_mean;
   VParamMat grad_v_var;
 
-  template <typename RAND>
-  const DataMat& sample(const RAND& rnorm) {
+  template <typename RAND> const DataMat &sample(const RAND &rnorm) {
     return sample_repr(Eta, rnorm);
   }
-  const DataMat& repr_mean() const { return Eta.get_mean(); }
-  const DataMat& repr_var() const { return Eta.get_var(); }
+  const DataMat &repr_mean() const { return Eta.get_mean(); }
+  const DataMat &repr_var() const { return Eta.get_var(); }
 
-  void add_sgd(const DataMat& llik) { update_repr(Eta, llik); }
+  void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
 
   // mean = E[U] * E[V']
   // var  = Var[U] * Var[V'] + E[U]^2 * Var[V'] + Var[U] * E[V']^2
   void resolve() {
     update_mean(Eta, mean_param(U) * mean_param(V).transpose());
 
-    update_var(Eta, var_param(U) * var_param(V).transpose() +
-                        mean_param(U).unaryExpr(square_op) * var_param(V).transpose() +
-                        var_param(U) * mean_param(V).unaryExpr(square_op).transpose());
+    update_var(
+        Eta, var_param(U) * var_param(V).transpose() +
+                 mean_param(U).unaryExpr(square_op) * var_param(V).transpose() +
+                 var_param(U) * mean_param(V).unaryExpr(square_op).transpose());
   }
 
   ///////////////////////////////////////////////////////////////////////
@@ -196,9 +199,9 @@ struct factorization_t {
     v_sq = mean_param(V);
     v_sq = v_sq.cwiseProduct(v_sq);
 
-    this->_compute_sgd_u();  // gradient for u
+    this->_compute_sgd_u(); // gradient for u
     eval_param_sgd(U, grad_u_mean, grad_u_var, nobs_u);
-    this->_compute_sgd_v();  // gradient for v
+    this->_compute_sgd_v(); // gradient for v
     eval_param_sgd(V, grad_v_mean, grad_v_var, nobs_v);
   }
 
@@ -210,9 +213,9 @@ struct factorization_t {
     v_sq = mean_param(V);
     v_sq = v_sq.cwiseProduct(v_sq);
 
-    this->_compute_sgd_u();  // gradient for u
+    this->_compute_sgd_u(); // gradient for u
     eval_hyperparam_sgd(U, grad_u_mean, grad_u_var, nobs_u);
-    this->_compute_sgd_v();  // gradient for v
+    this->_compute_sgd_v(); // gradient for v
     eval_hyperparam_sgd(V, grad_v_mean, grad_v_var, nobs_v);
   }
 
@@ -235,7 +238,7 @@ struct factorization_t {
   }
 
   struct square_op_t {
-    Scalar operator()(const Scalar& x) const { return x * x; }
+    Scalar operator()(const Scalar &x) const { return x * x; }
   } square_op;
 };
 

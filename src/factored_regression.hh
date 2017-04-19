@@ -187,6 +187,15 @@ struct factored_regression_t {
     this->resolve();
   }
 
+  template<typename Rng>
+  void jitter(const Scalar sd, Rng& rng) {
+    perturb_param(ThetaL, sd, rng);
+    perturb_param(ThetaR, sd, rng);
+    resolve_param(ThetaL);
+    resolve_param(ThetaR);
+    this->resolve();
+  }
+
   void update_sgd(const Scalar rate) {
     update_param_sgd(ThetaL, rate);
     update_param_sgd(ThetaR, rate);

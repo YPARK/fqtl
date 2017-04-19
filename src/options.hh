@@ -27,12 +27,13 @@ struct options_t {
     // HIGH_STOCH = false;
     MODEL_NAME = "gaussian";
     OUT_RESID = true;
+    RSEED = 13;
   }
 
-  const int vbiter() const { return VBITER; };
-  const int miniter() const { return MINITER; };
-  const int nsample() const { return NSAMPLE; };
-  const int k() const { return K; };
+  const unsigned int vbiter() const { return VBITER; };
+  const unsigned int miniter() const { return MINITER; };
+  const unsigned int nsample() const { return NSAMPLE; };
+  const unsigned int k() const { return K; };
   const float vbtol() const { return VBTOL; };
   const float jitter() const { return JITTER; };
   const float rate0() const { return RATE0; };
@@ -42,19 +43,19 @@ struct options_t {
   const float pi_lodds_lb() const { return PI_LODDS_LB; };
   const float pi_lodds_ub() const { return PI_LODDS_UB; };
   const float gammax() const { return GAMMAX; };
-  const int ninterval() const { return INTERV; };
+  const unsigned int ninterval() const { return INTERV; };
   const float rate_m() const { return RATE_M; };
   const float rate_v() const { return RATE_V; };
   const bool verbose() const { return VERBOSE; }
   const bool out_resid() const { return OUT_RESID; }
   // const bool high_stoch() const { return HIGH_STOCH; }
   const std::string model_name() const { return MODEL_NAME; }
+  const unsigned int rseed() const { return RSEED; };
 
-
-  int VBITER;
-  int MINITER;
-  int NSAMPLE;
-  int K;
+  unsigned int VBITER;
+  unsigned int MINITER;
+  unsigned int NSAMPLE;
+  unsigned int K;
   float VBTOL;
   float JITTER;
   float RATE0;
@@ -66,7 +67,7 @@ struct options_t {
   float PI_LODDS_UB;
 
   float GAMMAX;
-  int INTERV;
+  unsigned int INTERV;
   float RATE_M;
   float RATE_V;
 
@@ -74,6 +75,7 @@ struct options_t {
   bool OUT_RESID;
   // bool HIGH_STOCH;
   std::string MODEL_NAME;
+  unsigned int RSEED;
 };
 
 #endif
