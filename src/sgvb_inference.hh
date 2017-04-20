@@ -132,7 +132,7 @@ auto impl_fit_eta(Model &model, const Opt &opt,
     }
   }
 
-  TLOG("Finished training zQTL models");
+  TLOG("Finished SGVB inference");
   return conv.summarize();
 }
 

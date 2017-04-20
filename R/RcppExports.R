@@ -36,6 +36,11 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL, y.loc = NULL,
         return(NULL)
     }
 
+    if(!requireNamespace('methods', quietly = TRUE)){
+        print('methods package is missing') 
+        return(NULL)
+    }
+
     x.adj.mean <- Matrix::sparseMatrix(i = cis.x.adj$d1, j = cis.x.adj$d2, x = 1, dims = c(p, m))
 
     ## without additional c.mean
@@ -63,6 +68,17 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
     stopifnot(dim(x.mean)[1] == n)
     stopifnot(dim(x.var)[1] == n)
 
+    if(!requireNamespace('Matrix', quietly = TRUE)){
+        print('Matrix package is missing') 
+        return(NULL)
+    }
+
+    if(!requireNamespace('methods', quietly = TRUE)){
+        print('methods package is missing') 
+        return(NULL)
+    }
+
+
     if(factored){
 
         if(is.null(y.loc) || is.null(c.mean.loc)){
@@ -81,11 +97,6 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
         }
 
         cis.adj <- .Call('fqtl_adj', PACKAGE = 'fqtl', c.mean.loc, y.loc, y.loc2, cis.dist)
-
-        if(!requireNamespace('Matrix', quietly = TRUE)){
-            print('Matrix package is missing') 
-            return(NULL)
-        }
 
         c.mean.adj <- Matrix::sparseMatrix(i = cis.adj$d1, j = cis.adj$d2, x = 1, dims = c(p, m))
 
@@ -109,11 +120,6 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
         }
         
         x.cis.adj <- .Call('fqtl_adj', PACKAGE = 'fqtl', x.mean.loc, y.loc, y.loc2, cis.dist)
-
-        if(!requireNamespace('Matrix', quietly = TRUE)){
-            print('Matrix package is missing') 
-            return(NULL)
-        }
 
         x.mean.adj <- Matrix::sparseMatrix(i = x.cis.adj$d1, j = x.cis.adj$d2, x = 1, dims = c(p.x, m))
 
