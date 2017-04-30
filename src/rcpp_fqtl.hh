@@ -7,7 +7,6 @@
 
 #include "convergence.hh"
 #include "dummy.hh"
-#include "factored_regression.hh"
 #include "factorization.hh"
 #include "gaussian.hh"
 #include "gaussian_voom.hh"
@@ -15,6 +14,7 @@
 #include "parameters.hh"
 #include "rcpp_util.hh"
 #include "regression.hh"
+#include "regression_factored.hh"
 #include "residual.hh"
 #include "sgvb_inference.hh"
 #include "shared_effect.hh"

@@ -23,10 +23,14 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   using Index = typename Model::Index;
   using Mat = typename Model::Data;
 
+#ifdef EIGEN_USE_MKL_ALL
+  VSLStreamStatePtr rng;
+  // vslNewStream(&rng, VSL_BRNG_SFMT19937, opt.rseed());
+  vslNewStream(&rng, VSL_BRNG_MCG31, opt.rseed());
+#else
   // random seed initialization
   std::mt19937 rng(opt.rseed());
-  std::normal_distribution<Scalar> Norm;
-  auto rnorm_op = [&rng, &Norm] { return Norm(rng); };
+#endif
 
   using conv_t = convergence_t<Scalar>;
   Mat onesN = Mat::Ones(model.n, 1) / static_cast<Scalar>(model.n);
@@ -46,12 +50,12 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   // model fitting
   Scalar rate = opt.rate0();
 
-  auto sample_mean_eta = [&rnorm_op, &mean_sampled](auto &&eta) {
-    mean_sampled += eta.sample(rnorm_op);
+  auto sample_mean_eta = [&rng, &mean_sampled](auto &&eta) {
+    mean_sampled += eta.sample(rng);
   };
 
-  auto sample_var_eta = [&rnorm_op, &var_sampled](auto &&eta) {
-    var_sampled += eta.sample(rnorm_op);
+  auto sample_var_eta = [&rng, &var_sampled](auto &&eta) {
+    var_sampled += eta.sample(rng);
   };
 
   auto update_sgd_eta = [&nstoch, &mean_eta_tup, &var_eta_tup,
@@ -131,6 +135,10 @@ auto impl_fit_eta(Model &model, const Opt &opt,
       break;
     }
   }
+
+#ifdef EIGEN_USE_MKL_ALL
+  vslDeleteStream(&rng);
+#endif
 
   TLOG("Finished SGVB inference");
   return conv.summarize();

@@ -137,8 +137,8 @@ struct factorization_t {
   VParamMat grad_v_mean;
   VParamMat grad_v_var;
 
-  template <typename RAND> const DataMat &sample(const RAND &rnorm) {
-    return sample_repr(Eta, rnorm);
+  template <typename RNG> inline const DataMat &sample(const RNG &rng) {
+    return sample_repr(Eta, rng);
   }
   const DataMat &repr_mean() const { return Eta.get_mean(); }
   const DataMat &repr_var() const { return Eta.get_var(); }
