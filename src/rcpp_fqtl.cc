@@ -36,7 +36,7 @@ rcpp_train_mf(const Mat &yy,      // n x m
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
 
   if (opt.mf_svd_init()) {
-    mf_eta.init_by_svd(yy);
+    mf_eta.init_by_svd(yy, opt.jitter());
   } else {
     std::mt19937 rng(opt.rseed());
     mf_eta.jitter(opt.jitter(), rng);
@@ -96,7 +96,7 @@ rcpp_train_mf_cis(const Mat &yy,      // n x m
   auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
   if (opt.mf_svd_init()) {
-    mf_eta.init_by_svd(yy);
+    mf_eta.init_by_svd(yy, opt.jitter());
   } else {
     std::mt19937 rng(opt.rseed());
     mf_eta.jitter(opt.jitter(), rng);
@@ -158,7 +158,7 @@ Rcpp::List rcpp_train_mf_cis_aux(
   auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
   if (opt.mf_svd_init()) {
-    mf_eta.init_by_svd(yy);
+    mf_eta.init_by_svd(yy, opt.jitter());
   } else {
     std::mt19937 rng(opt.rseed());
     mf_eta.jitter(opt.jitter(), rng);
