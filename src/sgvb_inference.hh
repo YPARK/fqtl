@@ -17,18 +17,37 @@ template <typename Model, typename Opt, typename... MeanEtas,
 auto impl_fit_eta(Model &model, const Opt &opt,
                   std::tuple<MeanEtas...> &&mean_eta_tup,
                   std::tuple<VarEtas...> &&var_eta_tup,
+                  std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup);
+
+// Fit multiple eta's
+template <typename Model, typename Opt, typename... MeanEtas,
+          typename... VarEtas, typename... ClampedMeanEtas>
+auto impl_fit_eta(Model &model, const Opt &opt,
+                  std::tuple<MeanEtas...> &&mean_eta_tup,
+                  std::tuple<VarEtas...> &&var_eta_tup) {
+  dummy_eta_t dummy_eta;
+  return impl_fit_eta(model, opt, std::move(mean_eta_tup),
+                      std::move(var_eta_tup), std::make_tuple(dummy_eta));
+}
+
+////////////////////////////////////////////////////////////////
+// Fit multiple eta's
+template <typename Model, typename Opt, typename... MeanEtas,
+          typename... VarEtas, typename... ClampedMeanEtas>
+auto impl_fit_eta(Model &model, const Opt &opt,
+                  std::tuple<MeanEtas...> &&mean_eta_tup,
+                  std::tuple<VarEtas...> &&var_eta_tup,
                   std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup) {
 
   using Scalar = typename Model::Scalar;
   using Index = typename Model::Index;
   using Mat = typename Model::Data;
 
+// random seed initialization
 #ifdef EIGEN_USE_MKL_ALL
   VSLStreamStatePtr rng;
-  // vslNewStream(&rng, VSL_BRNG_SFMT19937, opt.rseed());
-  vslNewStream(&rng, VSL_BRNG_MCG31, opt.rseed());
+  vslNewStream(&rng, VSL_BRNG_SFMT19937, opt.rseed());
 #else
-  // random seed initialization
   std::mt19937 rng(opt.rseed());
 #endif
 
@@ -49,6 +68,7 @@ auto impl_fit_eta(Model &model, const Opt &opt,
 
   // model fitting
   Scalar rate = opt.rate0();
+  bool do_hyper = false;
 
   auto sample_mean_eta = [&rng, &mean_sampled](auto &&eta) {
     mean_sampled += eta.sample(rng);
@@ -61,7 +81,7 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   auto update_sgd_eta = [&nstoch, &mean_eta_tup, &var_eta_tup,
                          &clamped_mean_eta_tup, &sample_mean_eta,
                          &sample_var_eta, &mean_sampled, &var_sampled, &model,
-                         &rate](auto &&eta) {
+                         &rate, &do_hyper](auto &&eta) {
 
     for (Index s = 0; s < nstoch; ++s) {
       mean_sampled.setZero();
@@ -72,31 +92,16 @@ auto impl_fit_eta(Model &model, const Opt &opt,
       model.eval(mean_sampled, var_sampled);
       eta.add_sgd(model.llik());
     }
-    eta.eval_sgd();
-    eta.update_sgd(rate);
-  };
-
-  auto update_hyper_sgd_eta = [&nstoch, &mean_eta_tup, &var_eta_tup,
-                               &clamped_mean_eta_tup, &sample_mean_eta,
-                               &sample_var_eta, &mean_sampled, &var_sampled,
-                               &model, &rate](auto &&eta) {
-
-    for (Index s = 0; s < nstoch; ++s) {
-      mean_sampled.setZero();
-      var_sampled.setZero();
-      func_apply(sample_mean_eta, std::move(mean_eta_tup));
-      func_apply(sample_var_eta, std::move(var_eta_tup));
-      func_apply(sample_mean_eta, std::move(clamped_mean_eta_tup));
-      model.eval(mean_sampled, var_sampled);
-      eta.add_sgd(model.llik());
+    if (do_hyper) {
+      eta.eval_hyper_sgd();
+      eta.update_hyper_sgd(rate);
     }
-    eta.eval_hyper_sgd();
-    eta.update_hyper_sgd(rate);
     eta.eval_sgd();
     eta.update_sgd(rate);
   };
 
   // initial tuning without hyperparameter optimization
+  do_hyper = false;
   for (t = 0; t < niter; ++t) {
     if (Progress::check_abort()) {
       break;
@@ -117,14 +122,15 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   }
 
   // hyperparameter tuning
+  do_hyper = true;
   for (; t < 2 * niter; ++t) {
     if (Progress::check_abort()) {
       break;
     }
     prog.increment();
     rate = opt.rate0() * std::pow(static_cast<Scalar>(t + 1), opt.decay());
-    func_apply(update_hyper_sgd_eta, std::move(mean_eta_tup));
-    func_apply(update_hyper_sgd_eta, std::move(var_eta_tup));
+    func_apply(update_sgd_eta, std::move(mean_eta_tup));
+    func_apply(update_sgd_eta, std::move(var_eta_tup));
 
     conv.add(model.llik().transpose() * onesN);
     bool converged = conv.converged(opt.vbtol(), opt.miniter());

@@ -11,10 +11,10 @@
 // var ~ xx_var * theta
 // [[Rcpp::export(name="fqtl.mf", rng=false)]]
 Rcpp::List
-rcpp_correction_mf(const Mat &yy,      // n x m
-                   const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
-                   const Mat &xx_var,  // n x q -> regression -> [n x q] [q x m]
-                   const Rcpp::List &option_list) {
+rcpp_train_mf(const Mat &yy,      // n x m
+              const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
+              const Mat &xx_var,  // n x q -> regression -> [n x q] [q x m]
+              const Rcpp::List &option_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -34,21 +34,24 @@ rcpp_correction_mf(const Mat &yy,      // n x m
   auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
   auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
-  std::mt19937 rng(opt.rseed());
-  mf_eta.jitter(opt.jitter(), rng);
+
+  if (opt.mf_svd_init()) {
+    mf_eta.init_by_svd(yy);
+  } else {
+    std::mt19937 rng(opt.rseed());
+    mf_eta.jitter(opt.jitter(), rng);
+  }
 
   auto mean_theta = make_dense_spike_slab<Scalar>(xx_mean.cols(), m, opt);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
 
   auto var_theta = make_dense_col_slab<Scalar>(xx_var.cols(), m, opt);
   auto var_eta = make_regression_eta(xx_var, yy, var_theta);
-  dummy_eta_t dummy_eta;
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
-  auto llik_trace =
-      impl_fit_eta(model, opt, std::make_tuple(mf_eta, mean_eta),
-                   std::make_tuple(var_eta), std::make_tuple(dummy_eta));
+  auto llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, mean_eta),
+                                 std::make_tuple(var_eta));
 
   TLOG("Finished MF");
 
@@ -63,12 +66,12 @@ rcpp_correction_mf(const Mat &yy,      // n x m
 // mean ~ U * V' + xx_mean * theta
 // var ~ xx_var * theta
 // [[Rcpp::export(name="fqtl.mf.cis", rng=false)]]
-Rcpp::List rcpp_correction_mf_cis(
-    const Mat &yy,         // n x m
-    const Mat &xx_mean,    // n x p -> regression -> [n x p] [p x m]
-    const SpMat &adj_mean, // p x m adjacency
-    const Mat &xx_var,     // n x q -> regression -> [n x q] [q x m]
-    const Rcpp::List &option_list) {
+Rcpp::List
+rcpp_train_mf_cis(const Mat &yy,      // n x m
+                  const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
+                  const SpMat &adj_mean, // p x m adjacency
+                  const Mat &xx_var, // n x q -> regression -> [n x q] [q x m]
+                  const Rcpp::List &option_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -92,8 +95,12 @@ Rcpp::List rcpp_correction_mf_cis(
   auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
   auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
-  std::mt19937 rng(opt.rseed());
-  mf_eta.jitter(opt.jitter(), rng);
+  if (opt.mf_svd_init()) {
+    mf_eta.init_by_svd(yy);
+  } else {
+    std::mt19937 rng(opt.rseed());
+    mf_eta.jitter(opt.jitter(), rng);
+  }
 
   auto mean_theta = make_sparse_spike_slab<Scalar>(adj_mean, opt);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
@@ -101,13 +108,10 @@ Rcpp::List rcpp_correction_mf_cis(
   auto var_theta = make_dense_slab<Scalar>(xx_var.cols(), m, opt);
   auto var_eta = make_regression_eta(xx_var, yy, var_theta);
 
-  dummy_eta_t dummy_eta;
-
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
-  auto llik_trace =
-      impl_fit_eta(model, opt, std::make_tuple(mf_eta, mean_eta),
-                   std::make_tuple(var_eta), std::make_tuple(dummy_eta));
+  auto llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, mean_eta),
+                                 std::make_tuple(var_eta));
 
   TLOG("Finished MF");
 
@@ -122,7 +126,7 @@ Rcpp::List rcpp_correction_mf_cis(
 // mean ~ U * V' + xx_sparse_mean * theta + xx_dense_mean * theta
 // var ~ xx_var * theta
 // [[Rcpp::export(name="fqtl.mf.cis.aux", rng=false)]]
-Rcpp::List rcpp_correction_mf_cis_aux(
+Rcpp::List rcpp_train_mf_cis_aux(
     const Mat &yy,             // n x m
     const Mat &xx_sparse_mean, // n x p
     const SpMat &adj_mean,     // p x m adjacency
@@ -153,8 +157,12 @@ Rcpp::List rcpp_correction_mf_cis_aux(
   auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
   auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
-  std::mt19937 rng(opt.rseed());
-  mf_eta.jitter(opt.jitter(), rng);
+  if (opt.mf_svd_init()) {
+    mf_eta.init_by_svd(yy);
+  } else {
+    std::mt19937 rng(opt.rseed());
+    mf_eta.jitter(opt.jitter(), rng);
+  }
 
   auto mean_sparse_theta = make_sparse_spike_slab<Scalar>(adj_mean, opt);
   auto mean_sparse_eta =
@@ -168,13 +176,11 @@ Rcpp::List rcpp_correction_mf_cis_aux(
   auto var_theta = make_dense_slab<Scalar>(xx_var.cols(), m, opt);
   auto var_eta = make_regression_eta(xx_var, yy, var_theta);
 
-  dummy_eta_t dummy_eta;
-
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
   auto llik_trace = impl_fit_eta(
       model, opt, std::make_tuple(mf_eta, mean_sparse_eta, mean_dense_eta),
-      std::make_tuple(var_eta), std::make_tuple(dummy_eta));
+      std::make_tuple(var_eta));
 
   TLOG("Finished MF");
 
@@ -239,11 +245,9 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,      // n x m
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
 
-  dummy_eta_t dummy_eta;
-
   auto llik_trace =
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(dummy_eta));
+                   std::make_tuple(x_var_eta));
 
   return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u),
                             Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
@@ -309,11 +313,9 @@ rcpp_train_factored_regression_cis(const Mat &yy,            // n x m
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
 
-  dummy_eta_t dummy_eta;
-
   auto llik_trace =
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(dummy_eta));
+                   std::make_tuple(x_var_eta));
 
   return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u),
                             Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
@@ -356,14 +358,12 @@ Rcpp::List rcpp_train_regression(const Mat &yy,      // n x m
       make_dense_spike_slab<Scalar>(xx_mean.cols(), yy.cols(), opt);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
 
-  dummy_eta_t dummy_eta;
-
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
 
   auto llik_trace =
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(dummy_eta));
+                   std::make_tuple(x_var_eta));
 
   // residual calculation
   auto theta_resid_full =
@@ -429,14 +429,12 @@ Rcpp::List rcpp_train_regression_cis(const Mat &yy,         // n x m
   auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
   auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
 
-  dummy_eta_t dummy_eta;
-
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
 
   auto llik_trace =
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(dummy_eta));
+                   std::make_tuple(x_var_eta));
 
   // residual calculation
   auto theta_resid_full =
@@ -506,14 +504,12 @@ Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy,            // n x m
   auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
   auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
 
-  dummy_eta_t dummy_eta;
-
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
 
   auto llik_trace =
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(dummy_eta));
+                   std::make_tuple(x_var_eta));
 
   // residual calculation
   auto theta_resid_full =
@@ -557,7 +553,7 @@ RcppExport SEXP fqtl_rcpp_train_mf(SEXP y, SEXP x_m, SEXP x_v, SEXP opt) {
   Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
-  __result = Rcpp::wrap(rcpp_correction_mf(yy, xx_m, xx_v, option_list));
+  __result = Rcpp::wrap(rcpp_train_mf(yy, xx_m, xx_v, option_list));
 
   return __result;
   END_RCPP
@@ -574,8 +570,7 @@ RcppExport SEXP fqtl_rcpp_train_mf_cis(SEXP y, SEXP x_m, SEXP a_m, SEXP x_v,
   Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
-  __result =
-      Rcpp::wrap(rcpp_correction_mf_cis(yy, xx_m, aa_m, xx_v, option_list));
+  __result = Rcpp::wrap(rcpp_train_mf_cis(yy, xx_m, aa_m, xx_v, option_list));
 
   return __result;
   END_RCPP
@@ -594,7 +589,7 @@ RcppExport SEXP fqtl_rcpp_train_mf_cis_aux(SEXP y, SEXP x_m, SEXP a_m, SEXP c_m,
   Rcpp::List option_list(opt);
 
   __result = Rcpp::wrap(
-      rcpp_correction_mf_cis_aux(yy, xx_m, aa_m, cc_m, xx_v, option_list));
+      rcpp_train_mf_cis_aux(yy, xx_m, aa_m, cc_m, xx_v, option_list));
 
   return __result;
   END_RCPP

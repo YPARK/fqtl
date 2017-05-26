@@ -118,6 +118,17 @@ struct factorization_t {
     resolve();
   }
 
+  void init_by_svd(const DataMat& data) {
+    Eigen::JacobiSVD<DataMat> svd(data, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    DataMat uu = svd.matrixU();
+    DataMat vvt = svd.singularValues().asDiagonal() * svd.matrixV().transpose();
+    U.beta = uu.leftCols(k);
+    V.beta = vvt.leftCols(k);
+    resolve_param(U);
+    resolve_param(V);
+    resolve();
+  }
+
   Repr Eta;
   UParam &U;
   VParam &V;

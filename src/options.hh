@@ -28,6 +28,7 @@ struct options_t {
     MODEL_NAME = "gaussian";
     OUT_RESID = true;
     RSEED = 13;
+    MF_SVD_INIT = true;
   }
 
   const unsigned int vbiter() const { return VBITER; };
@@ -48,6 +49,7 @@ struct options_t {
   const float rate_v() const { return RATE_V; };
   const bool verbose() const { return VERBOSE; }
   const bool out_resid() const { return OUT_RESID; }
+  const bool mf_svd_init() const { return MF_SVD_INIT; }
   // const bool high_stoch() const { return HIGH_STOCH; }
   const std::string model_name() const { return MODEL_NAME; }
   const unsigned int rseed() const { return RSEED; };
@@ -73,7 +75,7 @@ struct options_t {
 
   bool VERBOSE;
   bool OUT_RESID;
-  // bool HIGH_STOCH;
+  bool MF_SVD_INIT;
   std::string MODEL_NAME;
   unsigned int RSEED;
 };
