@@ -42,14 +42,14 @@ struct factored_regression_t {
     check_dim(ThetaR, m, k, "ThetaR in factored_regression_t");
     check_dim(Eta, n, m, "Eta in factored_regression_t");
 #endif
-    copy_matrix(mean_param(ThetaL), NobsL);
-    copy_matrix(mean_param(ThetaR), NobsR);
+    copy_matrix(ThetaL.theta, NobsL);
+    copy_matrix(ThetaR.theta, NobsR);
 
     // 1. compute Nobs
     // NobsL = O[X'] * O[Y] * O[R] (p x k)
     // NobsR = O[Y'] * O[X] * O[L] (m x k)
-    XYZ_nobs(xx.transpose(), yy, mean_param(ThetaR), NobsL);
-    XYZ_nobs(yy.transpose(), xx, mean_param(ThetaL), NobsR);
+    XYZ_nobs(xx.transpose(), yy, ThetaR.theta, NobsL);
+    XYZ_nobs(yy.transpose(), xx, ThetaL.theta, NobsR);
 
     // 2. copy X and Xsq removing missing values
     remove_missing(xx, X);
@@ -104,19 +104,16 @@ struct factored_regression_t {
   // mean = X * E[L] * E[R]'
   // var = X^2 * (Var[L] * Var[R]' + E[L]^2 * Var[R]' + Var[L] * E[R']^2)
   inline void resolve() {
-    thetaRsq =
-        mean_param(ThetaR).cwiseProduct(mean_param(ThetaR)); /* (m x k)  */
-    thetaLsq =
-        mean_param(ThetaL).cwiseProduct(mean_param(ThetaL)); /* (n x k)  */
+    thetaRsq = ThetaR.theta.cwiseProduct(ThetaR.theta); /* (m x k)  */
+    thetaLsq = ThetaL.theta.cwiseProduct(ThetaL.theta); /* (n x k)  */
 
-    update_mean(Eta, X * mean_param(ThetaL) *
-                         mean_param(ThetaR).transpose()); /* mean x mean */
+    update_mean(Eta,
+                X * ThetaL.theta * ThetaR.theta.transpose()); /* mean x mean */
     update_var(
         Eta,
-        Xsq *
-            (var_param(ThetaL) * var_param(ThetaR).transpose() + /* var x var */
-             thetaLsq * var_param(ThetaR).transpose() +  /* mean^2 x var */
-             var_param(ThetaL) * thetaRsq.transpose())); /* var x mean^2 */
+        Xsq * (ThetaL.theta_var * ThetaR.theta_var.transpose() + /* var x var */
+               thetaLsq * ThetaR.theta_var.transpose() +  /* mean^2 x var */
+               ThetaL.theta_var * thetaRsq.transpose())); /* var x mean^2 */
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -138,23 +135,21 @@ struct factored_regression_t {
   inline void eval_sgd() {
     Eta.summarize();
 
-    thetaRsq =
-        mean_param(ThetaR).cwiseProduct(mean_param(ThetaR)); /* (m x k) */
-    thetaLsq =
-        mean_param(ThetaL).cwiseProduct(mean_param(ThetaL)); /* (n x k) */
+    thetaRsq = ThetaR.theta.cwiseProduct(ThetaR.theta); /* (m x k) */
+    thetaLsq = ThetaL.theta.cwiseProduct(ThetaL.theta); /* (n x k) */
 
     // (1) update of G1L -- reducing to [n x k] helps performance
-    times_set(Eta.get_grad_type2(), var_param(ThetaR),
-              temp_nk);                 /* (n x m) (m x k) = (n x k)  */
-    trans_times_set(Xsq, temp_nk, G1L); /* (n x p)' (n x k) = (p x k) */
-    G1L = 2.0 * G1L.cwiseProduct(mean_param(ThetaL)); /* (p x k) */
+    times_set(Eta.get_grad_type2(), ThetaR.theta_var,
+              temp_nk);                         /* (n x m) (m x k) = (n x k)  */
+    trans_times_set(Xsq, temp_nk, G1L);         /* (n x p)' (n x k) = (p x k) */
+    G1L = 2.0 * G1L.cwiseProduct(ThetaL.theta); /* (p x k) */
 
-    times_set(Eta.get_grad_type1(), mean_param(ThetaR),
+    times_set(Eta.get_grad_type1(), ThetaR.theta,
               temp_nk); /* (n x m) (m x k) = (n x k) */
     trans_times_add(X, temp_nk, G1L);
 
     // (2) update of G2L
-    times_set(Eta.get_grad_type2(), var_param(ThetaR),
+    times_set(Eta.get_grad_type2(), ThetaR.theta_var,
               temp_nk); /* (n x m) (m x k) = (n x k)  */
     times_add(Eta.get_grad_type2(), thetaRsq,
               temp_nk);                 /* (n x m) (m x k) = (n x k)  */
@@ -163,18 +158,18 @@ struct factored_regression_t {
     eval_param_sgd(ThetaL, G1L, G2L, NobsL);
 
     // (3) update of G1R
-    times_set(Xsq, var_param(ThetaL), temp_nk); /* (n x p) (p x k) = (n x k) */
+    times_set(Xsq, ThetaL.theta_var, temp_nk); /* (n x p) (p x k) = (n x k) */
     trans_times_set(Eta.get_grad_type2(), temp_nk,
-                    G1R); /* (n x m)' (n x k) = (m x k) */
-    G1R = 2.0 * G1R.cwiseProduct(mean_param(ThetaR)); /* (m x k) */
+                    G1R);                       /* (n x m)' (n x k) = (m x k) */
+    G1R = 2.0 * G1R.cwiseProduct(ThetaR.theta); /* (m x k) */
 
-    times_set(X, mean_param(ThetaL), temp_nk); /* (n x p) (p x k) = (n x k) */
+    times_set(X, ThetaL.theta, temp_nk); /* (n x p) (p x k) = (n x k) */
     trans_times_add(Eta.get_grad_type1(), temp_nk,
                     G1R); /* (n x m)' (n x k) = (m x k) */
 
     // (4) update of G2R
-    times_set(Xsq, var_param(ThetaL), temp_nk); /* (n x p) (p x k) = (n x k) */
-    times_add(Xsq, thetaLsq, temp_nk);          /* (n x p) (p x k) = (n x k) */
+    times_set(Xsq, ThetaL.theta_var, temp_nk); /* (n x p) (p x k) = (n x k) */
+    times_add(Xsq, thetaLsq, temp_nk);         /* (n x p) (p x k) = (n x k) */
     trans_times_set(Eta.get_grad_type2(), temp_nk,
                     G2R); /* (n x m)' (n x k) = (m x k) */
 
@@ -184,6 +179,26 @@ struct factored_regression_t {
   template <typename RNG> inline void jitter(const Scalar sd, RNG &rng) {
     perturb_param(ThetaL, sd, rng);
     perturb_param(ThetaR, sd, rng);
+    resolve_param(ThetaL);
+    resolve_param(ThetaR);
+    this->resolve();
+  }
+
+  inline void init_by_svd(const ReprMatrix &yy, const Scalar sd) {
+
+    ReprMatrix Y;
+    remove_missing(yy, Y);
+    ReprMatrix XtY = X.transpose() * Y;
+
+    Eigen::JacobiSVD<ReprMatrix> svd(XtY,
+                                     Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+    ParamLeftMatrix left = svd.matrixU() * sd;
+    ParamRightMatrix right = svd.matrixV() * sd;
+
+    ThetaL.beta = left.leftCols(k);
+    ThetaR.beta = right.leftCols(k);
+
     resolve_param(ThetaL);
     resolve_param(ThetaR);
     this->resolve();

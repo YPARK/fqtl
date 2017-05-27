@@ -102,7 +102,7 @@ struct factorization_t {
     resolve();
   }
 
-  void jitter(const Scalar sd) {
+  inline void jitter(const Scalar sd) {
     perturb_param(U, sd);
     perturb_param(V, sd);
     resolve_param(U);
@@ -110,7 +110,7 @@ struct factorization_t {
     resolve();
   }
 
-  template <typename Rng> void jitter(const Scalar sd, Rng &rng) {
+  template <typename Rng> inline void jitter(const Scalar sd, Rng &rng) {
     perturb_param(U, sd, rng);
     perturb_param(V, sd, rng);
     resolve_param(U);
@@ -118,8 +118,9 @@ struct factorization_t {
     resolve();
   }
 
-  void init_by_svd(const DataMat& data, const Scalar sd) {
-    Eigen::JacobiSVD<DataMat> svd(data, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  inline void init_by_svd(const DataMat &data, const Scalar sd) {
+    Eigen::JacobiSVD<DataMat> svd(data,
+                                  Eigen::ComputeThinU | Eigen::ComputeThinV);
     DataMat uu = svd.matrixU() * sd;
     DataMat vv = svd.matrixV() * sd;
     U.beta = uu.leftCols(k);
@@ -145,6 +146,7 @@ struct factorization_t {
 
   UParamMat grad_u_mean;
   UParamMat grad_u_var;
+
   VParamMat grad_v_mean;
   VParamMat grad_v_var;
 
@@ -154,17 +156,19 @@ struct factorization_t {
   const DataMat &repr_mean() const { return Eta.get_mean(); }
   const DataMat &repr_var() const { return Eta.get_var(); }
 
-  void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
+  inline void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
 
   // mean = E[U] * E[V']
   // var  = Var[U] * Var[V'] + E[U]^2 * Var[V'] + Var[U] * E[V']^2
-  void resolve() {
-    update_mean(Eta, mean_param(U) * mean_param(V).transpose());
+  inline void resolve() {
+    update_mean(Eta, U.theta * V.theta.transpose());
 
-    update_var(
-        Eta, var_param(U) * var_param(V).transpose() +
-                 mean_param(U).unaryExpr(square_op) * var_param(V).transpose() +
-                 var_param(U) * mean_param(V).unaryExpr(square_op).transpose());
+    u_sq = U.theta.cwiseProduct(U.theta);
+    v_sq = V.theta.cwiseProduct(V.theta);
+
+    update_var(Eta, U.theta_var * V.theta_var.transpose() +
+                        u_sq * V.theta_var.transpose() +
+                        U.theta_var * v_sq.transpose());
   }
 
   ///////////////////////////////////////////////////////////////////////
@@ -184,31 +188,31 @@ struct factorization_t {
   //                                      += G2' * E[U]^2              //
   ///////////////////////////////////////////////////////////////////////
 
-  void _compute_sgd_u() {
-    times_set(Eta.get_grad_type2(), var_param(V), grad_u_mean);
-    grad_u_mean = grad_u_mean.cwiseProduct(mean_param(U)) * 2.0;
-    times_add(Eta.get_grad_type1(), mean_param(V), grad_u_mean);
+  inline void _compute_sgd_u() {
 
-    times_set(Eta.get_grad_type2(), v_sq, grad_u_var);
-    times_add(Eta.get_grad_type2(), var_param(V), grad_u_var);
+    grad_u_mean = Eta.get_grad_type1() * V.theta +
+                  U.theta.cwiseProduct(Eta.get_grad_type2() * V.theta_var *
+                                       static_cast<Scalar>(2.0));
+
+    grad_u_var =
+        Eta.get_grad_type2() * v_sq + Eta.get_grad_type2() * V.theta_var;
   }
 
-  void _compute_sgd_v() {
-    trans_times_set(Eta.get_grad_type2(), var_param(U), grad_v_mean);
-    grad_v_mean = grad_v_mean.cwiseProduct(mean_param(V)) * 2.0;
-    trans_times_add(Eta.get_grad_type1(), mean_param(U), grad_v_mean);
+  inline void _compute_sgd_v() {
 
-    trans_times_set(Eta.get_grad_type2(), u_sq, grad_v_var);
-    trans_times_add(Eta.get_grad_type2(), var_param(U), grad_v_var);
+    grad_v_mean = Eta.get_grad_type1().transpose() * U.theta +
+                  V.theta.cwiseProduct(Eta.get_grad_type2().transpose() *
+                                       U.theta_var * static_cast<Scalar>(2.0));
+
+    grad_v_var = Eta.get_grad_type2().transpose() * u_sq +
+                 Eta.get_grad_type2().transpose() * U.theta_var;
   }
 
-  void eval_sgd() {
+  inline void eval_sgd() {
     Eta.summarize();
 
-    u_sq = mean_param(U);
-    u_sq = u_sq.cwiseProduct(u_sq);
-    v_sq = mean_param(V);
-    v_sq = v_sq.cwiseProduct(v_sq);
+    u_sq = U.theta.cwiseProduct(U.theta);
+    v_sq = V.theta.cwiseProduct(V.theta);
 
     this->_compute_sgd_u(); // gradient for u
     eval_param_sgd(U, grad_u_mean, grad_u_var, nobs_u);
@@ -216,13 +220,11 @@ struct factorization_t {
     eval_param_sgd(V, grad_v_mean, grad_v_var, nobs_v);
   }
 
-  void eval_hyper_sgd() {
+  inline void eval_hyper_sgd() {
     Eta.summarize();
 
-    u_sq = mean_param(U);
-    u_sq = u_sq.cwiseProduct(u_sq);
-    v_sq = mean_param(V);
-    v_sq = v_sq.cwiseProduct(v_sq);
+    u_sq = U.theta.cwiseProduct(U.theta);
+    v_sq = V.theta.cwiseProduct(V.theta);
 
     this->_compute_sgd_u(); // gradient for u
     eval_hyperparam_sgd(U, grad_u_mean, grad_u_var, nobs_u);
@@ -230,7 +232,7 @@ struct factorization_t {
     eval_hyperparam_sgd(V, grad_v_mean, grad_v_var, nobs_v);
   }
 
-  void update_sgd(const Scalar rate) {
+  inline void update_sgd(const Scalar rate) {
     update_param_sgd(U, rate);
     update_param_sgd(V, rate);
     resolve_param(U);
@@ -238,7 +240,7 @@ struct factorization_t {
     this->resolve();
   }
 
-  void update_hyper_sgd(const Scalar rate) {
+  inline void update_hyper_sgd(const Scalar rate) {
     update_hyperparam_sgd(U, rate);
     update_hyperparam_sgd(V, rate);
     resolve_hyperparam(U);

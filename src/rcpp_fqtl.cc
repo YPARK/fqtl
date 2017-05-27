@@ -239,8 +239,12 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,      // n x m
   auto mean_eta =
       make_factored_regression_eta(xx_mean, yy, mf_theta_u, mf_theta_v);
 
-  std::mt19937 rng(opt.rseed());
-  mean_eta.jitter(opt.jitter(), rng);
+  if (opt.mf_svd_init()) {
+    mean_eta.init_by_svd(yy, opt.jitter());
+  } else {
+    std::mt19937 rng(opt.rseed());
+    mean_eta.jitter(opt.jitter(), rng);
+  }
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
@@ -307,8 +311,12 @@ rcpp_train_factored_regression_cis(const Mat &yy,            // n x m
   auto mean_eta =
       make_factored_regression_eta(xx_mean, yy, mf_theta_u, mf_theta_v);
 
-  std::mt19937 rng(opt.rseed());
-  mean_eta.jitter(opt.jitter(), rng);
+  if (opt.mf_svd_init()) {
+    mean_eta.init_by_svd(yy, opt.jitter());
+  } else {
+    std::mt19937 rng(opt.rseed());
+    mean_eta.jitter(opt.jitter(), rng);
+  }
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();

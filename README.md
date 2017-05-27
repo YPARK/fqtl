@@ -1,4 +1,7 @@
-# Multi-tissue polygenic models for transcriptome-wide association studies
+# A factorization approach to multi-tissue multi-SNP QTL modeling
+
+NOTE: We are restructuring analysis pipeline and documents.  Results
+and codes are temporary.
 
 ## Contributors
 
