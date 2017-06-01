@@ -91,38 +91,30 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
   if (_list.containsElementNamed("vb.tol"))
     opt.VBTOL = Rcpp::as<Scalar>(_list["vb.tol"]);
   if (_list.containsElementNamed("k"))
-    opt.K = Rcpp::as<Scalar>(_list["k"]);
+    opt.K = Rcpp::as<Index>(_list["k"]);
   if (_list.containsElementNamed("K"))
-    opt.K = Rcpp::as<Scalar>(_list["K"]);
+    opt.K = Rcpp::as<Index>(_list["K"]);
   if (_list.containsElementNamed("gammax"))
     opt.GAMMAX = Rcpp::as<Scalar>(_list["gammax"]);
   if (_list.containsElementNamed("decay"))
     opt.DECAY = Rcpp::as<Scalar>(_list["decay"]);
-
   if (_list.containsElementNamed("rate"))
     opt.RATE0 = Rcpp::as<Scalar>(_list["rate"]);
-
   if (_list.containsElementNamed("nsample")) {
-    opt.NSAMPLE = Rcpp::as<Scalar>(_list["nsample"]);
+    opt.NSAMPLE = Rcpp::as<Index>(_list["nsample"]);
     if (opt.nsample() < 3)
       WLOG("Too small random samples in SGD : " << opt.nsample());
   }
-
   if (_list.containsElementNamed("adam.rate.m"))
     opt.RATE_M = Rcpp::as<Scalar>(_list["adam.rate.m"]);
-
   if (_list.containsElementNamed("adam.rate.v"))
     opt.RATE_V = Rcpp::as<Scalar>(_list["adam.rate.v"]);
-
   if (_list.containsElementNamed("rseed"))
     opt.RSEED = Rcpp::as<Index>(_list["rseed"]);
-
   if (_list.containsElementNamed("jitter"))
-    opt.JITTER = Rcpp::as<Index>(_list["jitter"]);
-
+    opt.JITTER = Rcpp::as<Scalar>(_list["jitter"]);
   if (_list.containsElementNamed("svd.init"))
     opt.MF_SVD_INIT = Rcpp::as<bool>(_list["svd.init"]);
-
   if (_list.containsElementNamed("vbiter"))
     opt.VBITER = Rcpp::as<Index>(_list["vbiter"]);
   if (_list.containsElementNamed("verbose"))
