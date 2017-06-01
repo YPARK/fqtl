@@ -1,8 +1,9 @@
-fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL, y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
-                    cis.dist = 5e5, options = list(vbiter=1000, tol=1e-8, gammax=100,
-                                        rate=0.1, decay=-0.1, pi.ub=-1, pi.lb=-4,
-                                        tau.lb=-10, tau.ub=-4, verbose=TRUE)) {
-    
+fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
+                    y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
+                    cis.dist = 5e5,
+                    options.mf = list(),
+                    options.reg = list()) {
+
     n <- dim(y)[1]
     m <- dim(y)[2]
 
@@ -14,7 +15,8 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL, y.loc = NULL,
 
     ## dense y ~ x.mean
     if(is.null(y.loc) || is.null(x.mean.loc)){
-        return(.Call('fqtl_rcpp_train_mf', PACKAGE = 'fqtl', y, x.mean, x.var, options))
+        return(.Call('fqtl_rcpp_train_mf', y, x.mean, x.var, options.mf, options.reg,
+                     PACKAGE = 'fqtl'))
     }
 
     ## sparse y ~ x.mean
@@ -29,15 +31,16 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL, y.loc = NULL,
         y.loc2 <- pmax(y.loc, y.loc2)
     }
 
-    cis.x.adj <- .Call('fqtl_adj', PACKAGE = 'fqtl', x.mean.loc, y.loc, y.loc2, cis.dist)
+    cis.x.adj <- .Call('fqtl_adj', x.mean.loc, y.loc, y.loc2, cis.dist,
+                       PACKAGE = 'fqtl')
 
     if(!requireNamespace('Matrix', quietly = TRUE)){
-        print('Matrix package is missing') 
+        print('Matrix package is missing')
         return(NULL)
     }
 
     if(!requireNamespace('methods', quietly = TRUE)){
-        print('methods package is missing') 
+        print('methods package is missing')
         return(NULL)
     }
 
@@ -45,12 +48,14 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL, y.loc = NULL,
 
     ## without additional c.mean
     if(is.null(c.mean)){
-        return(.Call('fqtl_rcpp_train_mf_cis', PACKAGE = 'fqtl', y, x.mean, x.adj.mean, x.var, options))
+        return(.Call('fqtl_rcpp_train_mf_cis', y, x.mean, x.adj.mean, x.var,
+                     options.mf, options.reg, PACKAGE = 'fqtl'))
     }
 
     ## additional (dense) c.mean
     stopifnot(dim(c.mean)[1] == n)
-    return(.Call('fqtl_rcpp_train_mf_cis_aux', PACKAGE = 'fqtl', y, x.mean, x.adj.mean, c.mean, x.var, options))    
+    return(.Call('fqtl_rcpp_train_mf_cis_aux', y, x.mean, x.adj.mean, c.mean, x.var,
+                 options.mf, options.reg, PACKAGE = 'fqtl'))
 }
 
 fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
@@ -58,7 +63,7 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
                          cis.dist = 5e5, options = list(vbiter=1000, tol=1e-8, gammax=100,
                                              rate=0.1, decay=-0.1, pi.ub=-1, pi.lb=-4,
                                              tau.lb=-10, tau.ub=-4, verbose=TRUE)) {
-    
+
     n <- dim(y)[1]
     m <- dim(y)[2]
 
@@ -69,12 +74,12 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
     stopifnot(dim(x.var)[1] == n)
 
     if(!requireNamespace('Matrix', quietly = TRUE)){
-        print('Matrix package is missing') 
+        print('Matrix package is missing')
         return(NULL)
     }
 
     if(!requireNamespace('methods', quietly = TRUE)){
-        print('methods package is missing') 
+        print('methods package is missing')
         return(NULL)
     }
 
@@ -118,7 +123,7 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
             stopifnot(length(y.loc2) == m)
             y.loc2 <- pmax(y.loc, y.loc2)
         }
-        
+
         x.cis.adj <- .Call('fqtl_adj', PACKAGE = 'fqtl', x.mean.loc, y.loc, y.loc2, cis.dist)
 
         x.mean.adj <- Matrix::sparseMatrix(i = x.cis.adj$d1, j = x.cis.adj$d2, x = 1, dims = c(p.x, m))
@@ -130,7 +135,7 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
         ## both x.mean and c.mean hsve locations
         p.c <- dim(c.mean)[2]
         stopifnot(length(c.mean.loc) == p.c)
-        
+
         c.cis.adj <- .Call('fqtl_adj', PACKAGE = 'fqtl', c.mean.loc, y.loc, y.loc2, cis.dist)
         c.mean.adj <- Matrix::sparseMatrix(i = c.cis.adj$d1, j = c.cis.adj$d2, x = 1, dims = c(p.c, m))
 

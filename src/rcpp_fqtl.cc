@@ -14,7 +14,8 @@ Rcpp::List
 rcpp_train_mf(const Mat &yy,      // n x m
               const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
               const Mat &xx_var,  // n x q -> regression -> [n x q] [q x m]
-              const Rcpp::List &option_list) {
+              const Rcpp::List &option_mf_list,
+              const Rcpp::List &option_reg_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -24,34 +25,37 @@ rcpp_train_mf(const Mat &yy,      // n x m
   ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
                   "yy and xx_var with different number of rows");
 
-  options_t opt;
-  set_options_from_list(option_list, opt);
+  options_t opt_mf;
+  options_t opt_reg;
+  set_options_from_list(option_mf_list, opt_mf);
+  set_options_from_list(option_reg_list, opt_reg);
 
   const Index n = yy.rows();
   const Index m = yy.cols();
-  const Index K = opt.k();
+  const Index K = opt_mf.k();
 
-  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
-  auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
+  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt_mf);
+  auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt_mf);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
 
-  if (opt.mf_svd_init()) {
-    mf_eta.init_by_svd(yy, opt.jitter());
+  if (opt_mf.mf_svd_init()) {
+    mf_eta.init_by_svd(yy, opt_mf.jitter());
   } else {
-    std::mt19937 rng(opt.rseed());
-    mf_eta.jitter(opt.jitter(), rng);
+    std::mt19937 rng(opt_mf.rseed());
+    mf_eta.jitter(opt_mf.jitter(), rng);
   }
 
-  auto mean_theta = make_dense_spike_slab<Scalar>(xx_mean.cols(), m, opt);
+  auto mean_theta = make_dense_spike_slab<Scalar>(xx_mean.cols(), m, opt_reg);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
 
-  auto var_theta = make_dense_col_slab<Scalar>(xx_var.cols(), m, opt);
+  auto var_theta = make_dense_col_slab<Scalar>(xx_var.cols(), m, opt_reg);
   auto var_eta = make_regression_eta(xx_var, yy, var_theta);
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
-  auto llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, mean_eta),
-                                 std::make_tuple(var_eta));
+  auto llik_trace =
+      impl_fit_eta(model, opt_mf, std::make_tuple(mf_eta, mean_eta),
+                   std::make_tuple(var_eta));
 
   TLOG("Finished MF");
 
@@ -71,7 +75,8 @@ rcpp_train_mf_cis(const Mat &yy,      // n x m
                   const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
                   const SpMat &adj_mean, // p x m adjacency
                   const Mat &xx_var, // n x q -> regression -> [n x q] [q x m]
-                  const Rcpp::List &option_list) {
+                  const Rcpp::List &option_mf_list,
+                  const Rcpp::List &option_reg_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -85,33 +90,36 @@ rcpp_train_mf_cis(const Mat &yy,      // n x m
   ASSERT_LIST_RET(yy.cols() == adj_mean.cols(),
                   "yy and adj_mean with different number of outputs");
 
-  options_t opt;
-  set_options_from_list(option_list, opt);
+  options_t opt_mf;
+  options_t opt_reg;
+  set_options_from_list(option_mf_list, opt_mf);
+  set_options_from_list(option_reg_list, opt_reg);
 
   const Index n = yy.rows();
   const Index m = yy.cols();
-  const Index K = opt.k();
+  const Index K = opt_mf.k();
 
-  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
-  auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
+  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt_mf);
+  auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt_mf);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
-  if (opt.mf_svd_init()) {
-    mf_eta.init_by_svd(yy, opt.jitter());
+  if (opt_mf.mf_svd_init()) {
+    mf_eta.init_by_svd(yy, opt_mf.jitter());
   } else {
-    std::mt19937 rng(opt.rseed());
-    mf_eta.jitter(opt.jitter(), rng);
+    std::mt19937 rng(opt_mf.rseed());
+    mf_eta.jitter(opt_mf.jitter(), rng);
   }
 
-  auto mean_theta = make_sparse_spike_slab<Scalar>(adj_mean, opt);
+  auto mean_theta = make_sparse_spike_slab<Scalar>(adj_mean, opt_reg);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
 
-  auto var_theta = make_dense_slab<Scalar>(xx_var.cols(), m, opt);
+  auto var_theta = make_dense_slab<Scalar>(xx_var.cols(), m, opt_reg);
   auto var_eta = make_regression_eta(xx_var, yy, var_theta);
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
-  auto llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, mean_eta),
-                                 std::make_tuple(var_eta));
+  auto llik_trace =
+      impl_fit_eta(model, opt_mf, std::make_tuple(mf_eta, mean_eta),
+                   std::make_tuple(var_eta));
 
   TLOG("Finished MF");
 
@@ -132,7 +140,7 @@ Rcpp::List rcpp_train_mf_cis_aux(
     const SpMat &adj_mean,     // p x m adjacency
     const Mat &xx_dense_mean,  // additional covariates
     const Mat &xx_var,         // n x q -> regression -> [n x q] [q x m]
-    const Rcpp::List &option_list) {
+    const Rcpp::List &option_mf_list, const Rcpp::List &option_reg_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -147,39 +155,41 @@ Rcpp::List rcpp_train_mf_cis_aux(
   ASSERT_LIST_RET(yy.cols() == adj_mean.cols(),
                   "yy and adj_mean with different number of outputs");
 
-  options_t opt;
-  set_options_from_list(option_list, opt);
+  options_t opt_mf;
+  options_t opt_reg;
+  set_options_from_list(option_mf_list, opt_mf);
+  set_options_from_list(option_reg_list, opt_reg);
 
   const Index n = yy.rows();
   const Index m = yy.cols();
-  const Index K = opt.k();
+  const Index K = opt_mf.k();
 
-  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
-  auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt);
+  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt_mf);
+  auto mf_theta_v = make_dense_col_spike_slab<Scalar>(m, K, opt_mf);
   auto mf_eta = make_factorization_eta(yy, mf_theta_u, mf_theta_v);
-  if (opt.mf_svd_init()) {
-    mf_eta.init_by_svd(yy, opt.jitter());
+  if (opt_mf.mf_svd_init()) {
+    mf_eta.init_by_svd(yy, opt_mf.jitter());
   } else {
-    std::mt19937 rng(opt.rseed());
-    mf_eta.jitter(opt.jitter(), rng);
+    std::mt19937 rng(opt_mf.rseed());
+    mf_eta.jitter(opt_mf.jitter(), rng);
   }
 
-  auto mean_sparse_theta = make_sparse_spike_slab<Scalar>(adj_mean, opt);
+  auto mean_sparse_theta = make_sparse_spike_slab<Scalar>(adj_mean, opt_reg);
   auto mean_sparse_eta =
       make_regression_eta(xx_sparse_mean, yy, mean_sparse_theta);
 
   auto mean_dense_theta =
-      make_dense_spike_slab<Scalar>(xx_dense_mean.cols(), m, opt);
+      make_dense_spike_slab<Scalar>(xx_dense_mean.cols(), m, opt_reg);
   auto mean_dense_eta =
       make_regression_eta(xx_dense_mean, yy, mean_dense_theta);
 
-  auto var_theta = make_dense_slab<Scalar>(xx_var.cols(), m, opt);
+  auto var_theta = make_dense_slab<Scalar>(xx_var.cols(), m, opt_reg);
   auto var_eta = make_regression_eta(xx_var, yy, var_theta);
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
   auto llik_trace = impl_fit_eta(
-      model, opt, std::make_tuple(mf_eta, mean_sparse_eta, mean_dense_eta),
+      model, opt_mf, std::make_tuple(mf_eta, mean_sparse_eta, mean_dense_eta),
       std::make_tuple(var_eta));
 
   TLOG("Finished MF");
@@ -552,52 +562,59 @@ using namespace Rcpp;
 // Package export //
 ////////////////////
 
-RcppExport SEXP fqtl_rcpp_train_mf(SEXP y, SEXP x_m, SEXP x_v, SEXP opt) {
+RcppExport SEXP fqtl_rcpp_train_mf(SEXP y, SEXP x_m, SEXP x_v, SEXP opt_mf,
+                                   SEXP opt_reg) {
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
-  Rcpp::List option_list(opt);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
+  Rcpp::List option_mf_list(opt_mf);
+  Rcpp::List option_reg_list(opt_reg);
 
-  __result = Rcpp::wrap(rcpp_train_mf(yy, xx_m, xx_v, option_list));
+  __result = Rcpp::wrap(
+      rcpp_train_mf(yy, xx_m, xx_v, option_mf_list, option_reg_list));
 
   return __result;
   END_RCPP
 }
 
 RcppExport SEXP fqtl_rcpp_train_mf_cis(SEXP y, SEXP x_m, SEXP a_m, SEXP x_v,
-                                       SEXP opt) {
+                                       SEXP opt_mf, SEXP opt_reg) {
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const SpMat &>::type aa_m(a_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
-  Rcpp::List option_list(opt);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const SpMat>::type aa_m(a_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
+  Rcpp::List option_mf_list(opt_mf);
+  Rcpp::List option_reg_list(opt_reg);
 
-  __result = Rcpp::wrap(rcpp_train_mf_cis(yy, xx_m, aa_m, xx_v, option_list));
+  __result = Rcpp::wrap(
+      rcpp_train_mf_cis(yy, xx_m, aa_m, xx_v, option_mf_list, option_reg_list));
 
   return __result;
   END_RCPP
 }
 
 RcppExport SEXP fqtl_rcpp_train_mf_cis_aux(SEXP y, SEXP x_m, SEXP a_m, SEXP c_m,
-                                           SEXP x_v, SEXP opt) {
+                                           SEXP x_v, SEXP opt_mf,
+                                           SEXP opt_reg) {
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const SpMat &>::type aa_m(a_m);
-  Rcpp::traits::input_parameter<const Mat &>::type cc_m(c_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
-  Rcpp::List option_list(opt);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const SpMat>::type aa_m(a_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
+  Rcpp::List option_mf_list(opt_mf);
+  Rcpp::List option_reg_list(opt_reg);
 
-  __result = Rcpp::wrap(
-      rcpp_train_mf_cis_aux(yy, xx_m, aa_m, cc_m, xx_v, option_list));
+  __result = Rcpp::wrap(rcpp_train_mf_cis_aux(yy, xx_m, aa_m, cc_m, xx_v,
+                                              option_mf_list, option_reg_list));
 
   return __result;
   END_RCPP
@@ -608,10 +625,10 @@ RcppExport SEXP fqtl_rcpp_train_reg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const Mat &>::type cc_m(c_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
   __result =
@@ -626,11 +643,11 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis(SEXP y, SEXP x_m, SEXP a_x_m, SEXP c_m,
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const SpMat &>::type adj_xx_m(a_x_m);
-  Rcpp::traits::input_parameter<const Mat &>::type cc_m(c_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const SpMat>::type adj_xx_m(a_x_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
   __result = Rcpp::wrap(
@@ -646,12 +663,12 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis_cis(SEXP y, SEXP x_m, SEXP a_x_m,
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const SpMat &>::type adj_xx_m(a_x_m);
-  Rcpp::traits::input_parameter<const Mat &>::type cc_m(c_m);
-  Rcpp::traits::input_parameter<const SpMat &>::type adj_cc_m(a_c_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const SpMat>::type adj_xx_m(a_x_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const SpMat>::type adj_cc_m(a_c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
   __result = Rcpp::wrap(rcpp_train_regression_cis_cis(
@@ -666,10 +683,10 @@ RcppExport SEXP fqtl_rcpp_train_freg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const Mat &>::type cc_m(c_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
   __result = Rcpp::wrap(
@@ -684,11 +701,11 @@ RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
   BEGIN_RCPP
   Rcpp::RObject __result;
   Rcpp::RNGScope __rngScope;
-  Rcpp::traits::input_parameter<const Mat &>::type yy(y);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_m(x_m);
-  Rcpp::traits::input_parameter<const Mat &>::type cc_m(c_m);
-  Rcpp::traits::input_parameter<const SpMat &>::type adj_cc_m(a_c_m);
-  Rcpp::traits::input_parameter<const Mat &>::type xx_v(x_v);
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const SpMat>::type adj_cc_m(a_c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
   Rcpp::List option_list(opt);
 
   __result = Rcpp::wrap(rcpp_train_factored_regression_cis(
