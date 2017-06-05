@@ -121,6 +121,12 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
   if (_list.containsElementNamed("print.interv"))
     opt.INTERV = Rcpp::as<Index>(_list["print.interv"]);
 
+  if (_list.containsElementNamed("num.threads"))
+    opt.NTHREAD = Rcpp::as<Index>(_list["num.threads"]);
+
+  if (_list.containsElementNamed("nthreads"))
+    opt.NTHREAD = Rcpp::as<Index>(_list["nthreads"]);
+
   if (_list.containsElementNamed("verbose"))
     opt.VERBOSE = Rcpp::as<bool>(_list["verbose"]);
   if (_list.containsElementNamed("out.residual"))
