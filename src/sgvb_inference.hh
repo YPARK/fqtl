@@ -51,6 +51,9 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   std::mt19937 rng(opt.rseed());
 #endif
 
+  Eigen::setNbThreads(opt.nthread());
+  TLOG("Number of threads = " << opt.nthread());
+
   using conv_t = convergence_t<Scalar>;
   Mat onesN = Mat::Ones(model.n, 1) / static_cast<Scalar>(model.n);
   conv_t conv(typename conv_t::Nmodels(model.m),

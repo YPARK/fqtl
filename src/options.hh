@@ -9,6 +9,7 @@ struct options_t {
   explicit options_t() {
     VBITER = 1000;
     MINITER = 100;
+    NTHREAD = 1;
     K = 10;
     VBTOL = 1e-2;
     NSAMPLE = 10;
@@ -24,7 +25,6 @@ struct options_t {
     RATE_M = 0.99;
     RATE_V = 0.9999;
     VERBOSE = true;
-    // HIGH_STOCH = false;
     MODEL_NAME = "gaussian";
     OUT_RESID = true;
     RSEED = 13;
@@ -34,6 +34,7 @@ struct options_t {
   const unsigned int vbiter() const { return VBITER; };
   const unsigned int miniter() const { return MINITER; };
   const unsigned int nsample() const { return NSAMPLE; };
+  const unsigned int nthread() const { return NTHREAD; };
   const unsigned int k() const { return K; };
   const float vbtol() const { return VBTOL; };
   const float jitter() const { return JITTER; };
@@ -50,13 +51,13 @@ struct options_t {
   const bool verbose() const { return VERBOSE; }
   const bool out_resid() const { return OUT_RESID; }
   const bool mf_svd_init() const { return MF_SVD_INIT; }
-  // const bool high_stoch() const { return HIGH_STOCH; }
   const std::string model_name() const { return MODEL_NAME; }
   const unsigned int rseed() const { return RSEED; };
 
   unsigned int VBITER;
   unsigned int MINITER;
   unsigned int NSAMPLE;
+  unsigned int NTHREAD;
   unsigned int K;
   float VBTOL;
   float JITTER;

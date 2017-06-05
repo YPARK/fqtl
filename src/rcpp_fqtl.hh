@@ -117,6 +117,10 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
     opt.MF_SVD_INIT = Rcpp::as<bool>(_list["svd.init"]);
   if (_list.containsElementNamed("vbiter"))
     opt.VBITER = Rcpp::as<Index>(_list["vbiter"]);
+
+  if (_list.containsElementNamed("print.interv"))
+    opt.INTERV = Rcpp::as<Index>(_list["print.interv"]);
+
   if (_list.containsElementNamed("verbose"))
     opt.VERBOSE = Rcpp::as<bool>(_list["verbose"]);
   if (_list.containsElementNamed("out.residual"))
