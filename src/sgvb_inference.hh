@@ -4,6 +4,8 @@
 #include <RcppEigen.h>
 // [[Rcpp::depends(RcppProgress)]]
 #include <progress.hpp>
+// [[Rcpp::plugins(openmp)]]
+#include <omp.h>
 
 #include "convergence.hh"
 #include "tuple_util.hh"
