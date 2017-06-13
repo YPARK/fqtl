@@ -1,9 +1,9 @@
-#include "eigen_util.hh"
-#include "param_check.hh"
-#include "rcpp_util.hh"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include "eigen_util.hh"
+#include "param_check.hh"
+#include "rcpp_util.hh"
 
 #ifndef CONVERGENCE_HH_
 #define CONVERGENCE_HH_
@@ -23,7 +23,11 @@ struct convergence_t {
   };
 
   explicit convergence_t(const Nmodels& _nmodels, const Interv& _interv)
-      : t(0), nrec(0), nmodels(_nmodels.val), interv(_interv.val), curr_score_stat(nmodels, 1) {
+      : t(0),
+        nrec(0),
+        nmodels(_nmodels.val),
+        interv(_interv.val),
+        curr_score_stat(nmodels, 1) {
     curr_score.setZero(nmodels, 1);
     prev_score.setZero(nmodels, 1);
     score_trace.setZero(nmodels, 10);
@@ -42,7 +46,10 @@ struct convergence_t {
   bool converged(const Scalar tol = 1e-4, const Index minT = 10) {
     if (t > minT && nrec >= 2) {
       const Scalar old = score_trace.col(nrec - 2).cwiseAbs().mean();
-      const Scalar diff = (score_trace.col(nrec - 2) - score_trace.col(nrec - 1)).cwiseAbs().maxCoeff();
+      const Scalar diff =
+          (score_trace.col(nrec - 2) - score_trace.col(nrec - 1))
+              .cwiseAbs()
+              .maxCoeff();
       return diff / (1e-8 + old) < tol;
     }
 
@@ -58,7 +65,9 @@ struct convergence_t {
     }
   }
 
-  mat_t summarize() const { return mat_t{score_trace.leftCols(nrec).transpose()}; }
+  mat_t summarize() const {
+    return mat_t{score_trace.leftCols(nrec).transpose()};
+  }
 
  private:
   template <typename C>

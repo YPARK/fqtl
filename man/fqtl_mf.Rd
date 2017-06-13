@@ -20,9 +20,7 @@
 fqtl.mf(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
         y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
         cis.dist = 5e5,
-        options = list(model='gaussian', vbiter=1000, tol=1e-8, gammax=100,
-                       rate=0.01, decay=-0.1, pi.ub=-1, pi.lb=-4,
-                       tau.lb=-10, tau.ub=-4, verbose=TRUE))
+        options.mf = list())
 }
 \arguments{
   \item{y}{n x m response matrix}
@@ -33,7 +31,8 @@ fqtl.mf(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
   \item{y.loc}{p x 1 genomic location of y variables, e.g., TSS}
   \item{y.loc2}{p x 1 genomic location of y variables, e.g., TES}
   \item{cis.dist}{distance between x and y (default: 5e5)}
-  \item{options}{a list of options (see below)}
+  \item{options.mf}{a list of options for matrix factorization (see below)}
+  \item{options.reg}{a list of options for regression (see below)}
   \item{vbiter}{ max iterations of variational inference (default: 1000)}
   \item{tol}{ tolerance level to determine convergence (default: 1e-8)}
   \item{gammax}{ maximum precision of coefficients (default: 100)}
@@ -78,8 +77,8 @@ fqtl.mf(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
 require(fqtl)
 require(Matrix)
 
-n <- 100
-m <- 50
+n <- 150
+m <- 100
 k <- 3
 p <- 200
 
@@ -96,10 +95,11 @@ y[,1] <- y[,1] + y.resid
 x.v <- matrix(1, n, 1)
 xx <- as.matrix(cbind(X, 1))
 
-mf.opt <- list(tol=1e-8, rate=0.1, pi.ub=-1, gammax=100)
+mf.opt <- list(tol=1e-8, rate=0.01, pi.ub=0, pi.lb=-2, svd.init = TRUE, jitter = 1, vbiter = 2000, gammax=1000)
+reg.opt <- list(pi.ub=-2, pi.lb=-4, gammax=1000)
 
 ## full t(xx) * y adjacency matrix
-mf.out <- fqtl.mf(y, x.mean = xx, x.var = x.v, options = mf.opt)
+mf.out <- fqtl.mf(y, x.mean = xx, x.var = x.v, options.mf = mf.opt)
 
 image(Matrix(y), main = 'Y')
 image(Matrix(mf.out$U$theta), main = 'U')
@@ -108,7 +108,9 @@ image(Matrix(mf.out$mean$theta[1:20,]))
 
 ## sparse t(xx) * y adjacency matrix
 mf.out <- fqtl.mf(y, x.mean = xx, x.var = x.v, x.mean.loc = 1:(p+1),
-                  y.loc = 1:m, cis.dist = 3, options = mf.opt)
+                  y.loc = 1:m, cis.dist = 3,
+                  options.mf = mf.opt,
+                  options.reg = reg.opt)
 
 image(Matrix(mf.out$U$theta), main = 'U')
 image(Matrix(mf.out$V$theta), main = 'V')
@@ -117,7 +119,9 @@ image(Matrix(mf.out$mean$theta[1:20,]))
 ## mixed, sparse and dense
 c.m <- matrix(1, n, 1)
 mf.out <- fqtl.mf(y, x.mean = xx, x.var = x.v, x.mean.loc = 1:(p+1),
-                  y.loc = 1:m, cis.dist = 3, c.mean = c.m, options = mf.opt)
+                  y.loc = 1:m, cis.dist = 3, c.mean = c.m,
+                  options.mf = mf.opt,
+                  options.reg = reg.opt)
 
 image(Matrix(mf.out$U$theta), main = 'U')
 image(Matrix(mf.out$V$theta), main = 'V')

@@ -7,6 +7,7 @@
 // [[Rcpp::plugins(openmp)]]
 #include <omp.h>
 
+#include <memory>
 #include "convergence.hh"
 #include "dummy.hh"
 #include "factorization.hh"
@@ -20,7 +21,6 @@
 #include "residual.hh"
 #include "sgvb_inference.hh"
 #include "shared_effect.hh"
-#include <memory>
 
 #ifndef RCPP_FQT_HH_
 #define RCPP_FQT_HH_
@@ -33,9 +33,11 @@ using Index = Mat::Index;
 struct m_gaussian_tag {};
 struct m_gaussian_voom_tag {};
 
-template <typename Mat, typename ModelT> struct impl_model_maker_t;
+template <typename Mat, typename ModelT>
+struct impl_model_maker_t;
 
-template <typename Mat> struct impl_model_maker_t<Mat, m_gaussian_tag> {
+template <typename Mat>
+struct impl_model_maker_t<Mat, m_gaussian_tag> {
   using Scalar = typename Mat::Scalar;
   using model_type = gaussian_model_t<Mat>;
 
@@ -50,7 +52,8 @@ template <typename Mat> struct impl_model_maker_t<Mat, m_gaussian_tag> {
   }
 };
 
-template <typename Mat> struct impl_model_maker_t<Mat, m_gaussian_voom_tag> {
+template <typename Mat>
+struct impl_model_maker_t<Mat, m_gaussian_voom_tag> {
   using Scalar = typename Mat::Scalar;
   using model_type = gaussian_voom_model_t<Mat>;
 
@@ -65,7 +68,8 @@ template <typename Mat> struct impl_model_maker_t<Mat, m_gaussian_voom_tag> {
   }
 };
 
-template <typename T, typename Mat> auto make_model(const Mat &Y) {
+template <typename T, typename Mat>
+auto make_model(const Mat &Y) {
   impl_model_maker_t<Mat, T> maker;
   return maker(Y);
 }
@@ -92,10 +96,8 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
     opt.VBTOL = Rcpp::as<Scalar>(_list["tol"]);
   if (_list.containsElementNamed("vb.tol"))
     opt.VBTOL = Rcpp::as<Scalar>(_list["vb.tol"]);
-  if (_list.containsElementNamed("k"))
-    opt.K = Rcpp::as<Index>(_list["k"]);
-  if (_list.containsElementNamed("K"))
-    opt.K = Rcpp::as<Index>(_list["K"]);
+  if (_list.containsElementNamed("k")) opt.K = Rcpp::as<Index>(_list["k"]);
+  if (_list.containsElementNamed("K")) opt.K = Rcpp::as<Index>(_list["K"]);
   if (_list.containsElementNamed("gammax"))
     opt.GAMMAX = Rcpp::as<Scalar>(_list["gammax"]);
   if (_list.containsElementNamed("decay"))
@@ -158,8 +160,7 @@ Rcpp::List rcpp_fqtl_adj_list(const Rcpp::NumericVector &d1_loc,
     for (auto j = 0u; j < n2; ++j) {
       const double d2_start = d2_start_loc[j];
       const double d2_end = d2_end_loc[j];
-      if (d2_start > d2_end)
-        continue;
+      if (d2_start > d2_end) continue;
       if (d1 >= (d2_start - cis_window) && d1 <= (d2_end + cis_window)) {
         left.push_back(i + 1);
         right.push_back(j + 1);
@@ -172,7 +173,8 @@ Rcpp::List rcpp_fqtl_adj_list(const Rcpp::NumericVector &d1_loc,
 }
 
 ////////////////////////////////////////////////////////////////
-template <typename T> Rcpp::List param_rcpp_list(const T &param) {
+template <typename T>
+Rcpp::List param_rcpp_list(const T &param) {
   return impl_param_rcpp_list(param, sgd_tag<T>());
 }
 

@@ -13,7 +13,8 @@
 // Eta ~ X * Theta //
 /////////////////////
 
-template <typename Repr, typename Param> struct regression_t;
+template <typename Repr, typename Param>
+struct regression_t;
 
 template <typename Param, typename Scalar, typename Matrix>
 struct get_regression_type;
@@ -68,7 +69,8 @@ auto make_regression_eta_ptr(const Eigen::SparseMatrixBase<xDerived> &xx,
 // Eta ~ Theta * X //
 /////////////////////
 
-template <typename Repr, typename Param> struct transpose_regression_t;
+template <typename Repr, typename Param>
+struct transpose_regression_t;
 
 template <typename Param, typename Scalar, typename Matrix>
 struct get_transpose_regression_type;
@@ -129,7 +131,8 @@ auto make_transpose_regression_eta_ptr(
 // (2) Many eta's can be created to accommodate different random
 // selection of data points (i.e., rows).
 //
-template <typename Repr, typename Param> struct regression_t {
+template <typename Repr, typename Param>
+struct regression_t {
   using ParamMatrix = typename param_traits<Param>::Matrix;
   using Scalar = typename param_traits<Param>::Scalar;
   using Index = typename param_traits<Param>::Index;
@@ -137,8 +140,16 @@ template <typename Repr, typename Param> struct regression_t {
 
   explicit regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
                         Param &theta)
-      : n(xx.rows()), p(xx.cols()), m(yy.cols()), Nobs(p, m), Theta(theta),
-        X(n, p), Xsq(n, p), XtG1(p, m), X2tG2(p, m), Eta(make_gaus_repr(yy)) {
+      : n(xx.rows()),
+        p(xx.cols()),
+        m(yy.cols()),
+        Nobs(p, m),
+        Theta(theta),
+        X(n, p),
+        Xsq(n, p),
+        XtG1(p, m),
+        X2tG2(p, m),
+        Eta(make_gaus_repr(yy)) {
     check_dim(Theta, p, m, "Theta in regression_t");
     check_dim(Eta, n, m, "Eta in regression_t");
     copy_matrix(mean_param(Theta), Nobs);
@@ -172,7 +183,8 @@ template <typename Repr, typename Param> struct regression_t {
     update_var(Eta, Xsq * var_param(Theta));
   }
 
-  template <typename RNG> inline const ReprMatrix &sample(const RNG &rng) {
+  template <typename RNG>
+  inline const ReprMatrix &sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
   const ReprMatrix &repr_mean() const { return Eta.get_mean(); }
@@ -215,7 +227,8 @@ template <typename Repr, typename Param> struct regression_t {
 // (2) Many eta's can be created to accommodate different random
 // selection of data points (i.e., rows).
 //
-template <typename Repr, typename Param> struct transpose_regression_t {
+template <typename Repr, typename Param>
+struct transpose_regression_t {
   using ParamMatrix = typename param_traits<Param>::Matrix;
   using Scalar = typename param_traits<Param>::Scalar;
   using Index = typename param_traits<Param>::Index;
@@ -223,8 +236,16 @@ template <typename Repr, typename Param> struct transpose_regression_t {
 
   explicit transpose_regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
                                   Param &theta)
-      : n(yy.rows()), p(xx.rows()), m(xx.cols()), Nobs(n, p), Theta(theta),
-        X(p, m), Xsq(p, m), G1Xt(n, p), G2X2t(n, p), Eta(make_gaus_repr(yy)) {
+      : n(yy.rows()),
+        p(xx.rows()),
+        m(xx.cols()),
+        Nobs(n, p),
+        Theta(theta),
+        X(p, m),
+        Xsq(p, m),
+        G1Xt(n, p),
+        G2X2t(n, p),
+        Eta(make_gaus_repr(yy)) {
     check_dim(Theta, n, p, "Theta in transpose_regression_t");
     check_dim(Eta, n, m, "Eta in transpose_regression_t");
     copy_matrix(mean_param(Theta), Nobs);
@@ -258,7 +279,8 @@ template <typename Repr, typename Param> struct transpose_regression_t {
     update_var(Eta, var_param(Theta) * Xsq);
   }
 
-  template <typename RNG> inline const ReprMatrix &sample(const RNG &rng) {
+  template <typename RNG>
+  inline const ReprMatrix &sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
 

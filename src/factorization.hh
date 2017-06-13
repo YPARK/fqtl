@@ -72,9 +72,19 @@ struct factorization_t {
   using Index = typename DataMat::Index;
 
   explicit factorization_t(const DataMat &data, UParam &u, VParam &v)
-      : Eta(make_gaus_repr(data)), U(u), V(v), n(U.rows()), m(V.rows()),
-        k(U.cols()), nobs_u(n, k), nobs_v(m, k), u_sq(n, k), v_sq(m, k),
-        grad_u_mean(n, k), grad_u_var(n, k), grad_v_mean(m, k),
+      : Eta(make_gaus_repr(data)),
+        U(u),
+        V(v),
+        n(U.rows()),
+        m(V.rows()),
+        k(U.cols()),
+        nobs_u(n, k),
+        nobs_v(m, k),
+        u_sq(n, k),
+        v_sq(m, k),
+        grad_u_mean(n, k),
+        grad_u_var(n, k),
+        grad_v_mean(m, k),
         grad_v_var(m, k) {
     copy_matrix(mean_param(u), nobs_u);
     copy_matrix(mean_param(v), nobs_v);
@@ -110,7 +120,8 @@ struct factorization_t {
     resolve();
   }
 
-  template <typename Rng> inline void jitter(const Scalar sd, Rng &rng) {
+  template <typename Rng>
+  inline void jitter(const Scalar sd, Rng &rng) {
     perturb_param(U, sd, rng);
     perturb_param(V, sd, rng);
     resolve_param(U);
@@ -150,7 +161,8 @@ struct factorization_t {
   VParamMat grad_v_mean;
   VParamMat grad_v_var;
 
-  template <typename RNG> inline const DataMat &sample(const RNG &rng) {
+  template <typename RNG>
+  inline const DataMat &sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
   const DataMat &repr_mean() const { return Eta.get_mean(); }
@@ -189,7 +201,6 @@ struct factorization_t {
   ///////////////////////////////////////////////////////////////////////
 
   inline void _compute_sgd_u() {
-
     grad_u_mean = Eta.get_grad_type1() * V.theta +
                   U.theta.cwiseProduct(Eta.get_grad_type2() * V.theta_var *
                                        static_cast<Scalar>(2.0));
@@ -199,7 +210,6 @@ struct factorization_t {
   }
 
   inline void _compute_sgd_v() {
-
     grad_v_mean = Eta.get_grad_type1().transpose() * U.theta +
                   V.theta.cwiseProduct(Eta.get_grad_type2().transpose() *
                                        U.theta_var * static_cast<Scalar>(2.0));
@@ -214,9 +224,9 @@ struct factorization_t {
     u_sq = U.theta.cwiseProduct(U.theta);
     v_sq = V.theta.cwiseProduct(V.theta);
 
-    this->_compute_sgd_u(); // gradient for u
+    this->_compute_sgd_u();  // gradient for u
     eval_param_sgd(U, grad_u_mean, grad_u_var, nobs_u);
-    this->_compute_sgd_v(); // gradient for v
+    this->_compute_sgd_v();  // gradient for v
     eval_param_sgd(V, grad_v_mean, grad_v_var, nobs_v);
   }
 
@@ -226,9 +236,9 @@ struct factorization_t {
     u_sq = U.theta.cwiseProduct(U.theta);
     v_sq = V.theta.cwiseProduct(V.theta);
 
-    this->_compute_sgd_u(); // gradient for u
+    this->_compute_sgd_u();  // gradient for u
     eval_hyperparam_sgd(U, grad_u_mean, grad_u_var, nobs_u);
-    this->_compute_sgd_v(); // gradient for v
+    this->_compute_sgd_v();  // gradient for v
     eval_hyperparam_sgd(V, grad_v_mean, grad_v_var, nobs_v);
   }
 

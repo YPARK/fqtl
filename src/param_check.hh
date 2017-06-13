@@ -1,5 +1,5 @@
-#include "rcpp_util.hh"
 #include <cmath>
+#include "rcpp_util.hh"
 
 #ifndef param_check_hh_
 #define param_check_hh_
@@ -8,7 +8,9 @@
 // commonly used parameter types
 template <typename T>
 struct check_finite_t {
-  check_finite_t(const T v) : val(v) { ASSERT(std::isfinite(val), "must be finite number : " << val); }
+  check_finite_t(const T v) : val(v) {
+    ASSERT(std::isfinite(val), "must be finite number : " << val);
+  }
   const T val;
 };
 

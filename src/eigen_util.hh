@@ -1,5 +1,5 @@
-#include "rcpp_util.hh"
 #include <algorithm>
+#include "rcpp_util.hh"
 // #include <eigen3/Eigen/Core>
 // #include <eigen3/Eigen/SVD>
 // #include <eigen3/Eigen/SparseCore>
@@ -13,14 +13,16 @@
 ////////////////////////////////////////////////////////////////
 // C += A * B
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void times_add(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::MatrixBase<Derived2>& B,
                Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt += A * B;
 }
 
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBase<Derived2>& B,
+void times_add(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::SparseMatrixBase<Derived2>& B,
                Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt += A * B;
@@ -28,7 +30,8 @@ void times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBa
 
 // C += A * B
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void times_add(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::MatrixBase<Derived2>& B,
                Eigen::SparseMatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   using Index = typename RetDerived::Index;
@@ -45,14 +48,16 @@ void times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Der
 ////////////////////////////////////////////////////////////////
 // A * B -> C
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void times_set(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::MatrixBase<Derived2>& B,
                Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt = A * B;
 }
 
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBase<Derived2>& B,
+void times_set(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::SparseMatrixBase<Derived2>& B,
                Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt = A * B;
@@ -60,7 +65,8 @@ void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBa
 
 // A * B -> C
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void times_set(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::MatrixBase<Derived2>& B,
                Eigen::SparseMatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   using Index = typename RetDerived::Index;
@@ -75,14 +81,16 @@ void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Der
 }
 
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_set(const Eigen::SparseMatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void times_set(const Eigen::SparseMatrixBase<Derived1>& A,
+               const Eigen::MatrixBase<Derived2>& B,
                Eigen::SparseMatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt = A * B;
 }
 
 template <typename Derived1, typename Derived2, typename RetDerived>
-void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBase<Derived2>& B,
+void times_set(const Eigen::MatrixBase<Derived1>& A,
+               const Eigen::SparseMatrixBase<Derived2>& B,
                Eigen::SparseMatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt = A * B;
@@ -91,14 +99,16 @@ void times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBa
 ////////////////////////////////////////////////////////////////
 // A' * B -> C
 template <typename Derived1, typename Derived2, typename RetDerived>
-void trans_times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void trans_times_set(const Eigen::MatrixBase<Derived1>& A,
+                     const Eigen::MatrixBase<Derived2>& B,
                      Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt = A.transpose() * B;
 }
 
 template <typename Derived1, typename Derived2, typename RetDerived>
-void trans_times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBase<Derived2>& B,
+void trans_times_set(const Eigen::MatrixBase<Derived1>& A,
+                     const Eigen::SparseMatrixBase<Derived2>& B,
                      Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt = A.transpose() * B;
@@ -106,7 +116,8 @@ void trans_times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMa
 
 // A' * B -> C
 template <typename Derived1, typename Derived2, typename RetDerived>
-void trans_times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void trans_times_set(const Eigen::MatrixBase<Derived1>& A,
+                     const Eigen::MatrixBase<Derived2>& B,
                      Eigen::SparseMatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   using Index = typename RetDerived::Index;
@@ -123,14 +134,16 @@ void trans_times_set(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBa
 ////////////////////////////////////////////////////////////////
 // A' * B -> C
 template <typename Derived1, typename Derived2, typename RetDerived>
-void trans_times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void trans_times_add(const Eigen::MatrixBase<Derived1>& A,
+                     const Eigen::MatrixBase<Derived2>& B,
                      Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt += A.transpose() * B;
 }
 
 template <typename Derived1, typename Derived2, typename RetDerived>
-void trans_times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMatrixBase<Derived2>& B,
+void trans_times_add(const Eigen::MatrixBase<Derived1>& A,
+                     const Eigen::SparseMatrixBase<Derived2>& B,
                      Eigen::MatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   Tgt += A.transpose() * B;
@@ -138,7 +151,8 @@ void trans_times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::SparseMa
 
 // A' * B -> C
 template <typename Derived1, typename Derived2, typename RetDerived>
-void trans_times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBase<Derived2>& B,
+void trans_times_add(const Eigen::MatrixBase<Derived1>& A,
+                     const Eigen::MatrixBase<Derived2>& B,
                      Eigen::SparseMatrixBase<RetDerived>& C) {
   RetDerived& Tgt(C.derived());
   using Index = typename RetDerived::Index;
@@ -154,13 +168,15 @@ void trans_times_add(const Eigen::MatrixBase<Derived1>& A, const Eigen::MatrixBa
 
 ////////////////////////////////////////////////////////////////
 template <typename Derived, typename OtherDerived>
-void copy_matrix(const Eigen::MatrixBase<Derived>& src, Eigen::MatrixBase<OtherDerived>& tgt) {
+void copy_matrix(const Eigen::MatrixBase<Derived>& src,
+                 Eigen::MatrixBase<OtherDerived>& tgt) {
   tgt.derived().resize(src.rows(), src.cols());
   tgt = src.eval();
 }
 
 template <typename Derived, typename OtherDerived>
-void copy_matrix(const Eigen::SparseMatrixBase<Derived>& src, Eigen::SparseMatrixBase<OtherDerived>& tgt) {
+void copy_matrix(const Eigen::SparseMatrixBase<Derived>& src,
+                 Eigen::SparseMatrixBase<OtherDerived>& tgt) {
   OtherDerived& Tgt = tgt.derived();
   Tgt.setZero();
   Tgt.resize(src.rows(), src.cols());
@@ -170,7 +186,8 @@ void copy_matrix(const Eigen::SparseMatrixBase<Derived>& src, Eigen::SparseMatri
 ////////////////////////////////////////////////////////////////
 // initialize sparse matrix taking the same non-zeroness of Adj
 template <typename Derived>
-void initialize(const Eigen::SparseMatrixBase<Derived>& adj, Eigen::SparseMatrixBase<Derived>& mat,
+void initialize(const Eigen::SparseMatrixBase<Derived>& adj,
+                Eigen::SparseMatrixBase<Derived>& mat,
                 const typename Derived::Scalar value) {
   using Index = typename Derived::Index;
   const Derived& A = adj.derived();
@@ -194,7 +211,8 @@ void initialize(const Eigen::SparseMatrixBase<Derived>& adj, Eigen::SparseMatrix
 }
 
 template <typename Derived>
-void initialize(const Eigen::SparseMatrixBase<Derived>& adj, Eigen::SparseMatrixBase<Derived>& mat) {
+void initialize(const Eigen::SparseMatrixBase<Derived>& adj,
+                Eigen::SparseMatrixBase<Derived>& mat) {
   initialize(adj, mat, 0.0);
 }
 
@@ -244,7 +262,8 @@ struct column_sum_t {
 };
 
 template <typename Derived, typename OtherDerived>
-void column_sum(Eigen::SparseMatrixBase<Derived>& mat, Eigen::SparseMatrixBase<OtherDerived>& ret) {
+void column_sum(Eigen::SparseMatrixBase<Derived>& mat,
+                Eigen::SparseMatrixBase<OtherDerived>& ret) {
   ret.derived().resize(1, mat.cols());
   column_sum_t<OtherDerived> column_sum_op(ret.derived());
   visit(mat, column_sum_op);
@@ -319,7 +338,8 @@ struct calc_stat_t {
 
 ////////////////////////////////////////////////////////////////
 template <typename Derived>
-void setConstant(Eigen::SparseMatrixBase<Derived>& mat, const typename Derived::Scalar val) {
+void setConstant(Eigen::SparseMatrixBase<Derived>& mat,
+                 const typename Derived::Scalar val) {
   using Scalar = typename Derived::Scalar;
   auto fill_const = [val](const Scalar& x) { return val; };
   Derived& Mat = mat.derived();
@@ -327,7 +347,8 @@ void setConstant(Eigen::SparseMatrixBase<Derived>& mat, const typename Derived::
 }
 
 template <typename Derived>
-void setConstant(Eigen::MatrixBase<Derived>& mat, const typename Derived::Scalar val) {
+void setConstant(Eigen::MatrixBase<Derived>& mat,
+                 const typename Derived::Scalar val) {
   Derived& Mat = mat.derived();
   Mat = Mat.setConstant(val);
 }
@@ -409,19 +430,24 @@ struct op_mark_nonfinite_t {
 
 template <typename T>
 struct op_remove_nonfinite_t {
-  const T operator()(const T& x) const { return std::isfinite(x) ? x : zero_value; }
+  const T operator()(const T& x) const {
+    return std::isfinite(x) ? x : zero_value;
+  }
   static constexpr T zero_value = 0;
 };
 
 template <typename Derived, typename OtherDerived>
-void remove_missing(const Eigen::MatrixBase<Derived>& X, Eigen::MatrixBase<OtherDerived> const& ret) {
+void remove_missing(const Eigen::MatrixBase<Derived>& X,
+                    Eigen::MatrixBase<OtherDerived> const& ret) {
   typedef typename Derived::Scalar value_type;
   op_remove_nonfinite_t<value_type> op;
 
-  Eigen::MatrixBase<OtherDerived>& R = const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
+  Eigen::MatrixBase<OtherDerived>& R =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
 
   if (X.rows() != R.rows() || X.cols() != R.cols()) {
-    WLOG("resizing the matrix of " << R.rows() << " x " << R.cols() << " -> " << X.rows() << " x " << X.cols());
+    WLOG("resizing the matrix of " << R.rows() << " x " << R.cols() << " -> "
+                                   << X.rows() << " x " << X.cols());
     R.derived().resize(X.rows(), X.cols());
   }
 
@@ -431,7 +457,8 @@ void remove_missing(const Eigen::MatrixBase<Derived>& X, Eigen::MatrixBase<Other
 ////////////////////////////////////////////////////////////////
 // check dimensionality
 template <typename Derived, typename V>
-void check_dim(const Eigen::MatrixBase<Derived>& mat, const V nrows, const V ncols, const std::string msg) {
+void check_dim(const Eigen::MatrixBase<Derived>& mat, const V nrows,
+               const V ncols, const std::string msg) {
   ASSERT(mat.rows() == nrows, msg << " : " << nrows << " rows "
                                   << " != " << mat.rows() << " rows");
   ASSERT(mat.cols() == ncols, msg << " : " << ncols << " cols "
@@ -439,7 +466,8 @@ void check_dim(const Eigen::MatrixBase<Derived>& mat, const V nrows, const V nco
 }
 
 template <typename Derived, typename V>
-void check_dim(const Eigen::SparseMatrixBase<Derived>& mat, const V nrows, const V ncols, const std::string msg) {
+void check_dim(const Eigen::SparseMatrixBase<Derived>& mat, const V nrows,
+               const V ncols, const std::string msg) {
   ASSERT(mat.rows() == nrows, msg << " : " << nrows << " rows "
                                   << " != " << mat.rows() << " rows");
   ASSERT(mat.cols() == ncols, msg << " : " << ncols << " cols "
@@ -447,7 +475,8 @@ void check_dim(const Eigen::SparseMatrixBase<Derived>& mat, const V nrows, const
 }
 
 template <typename T, typename V>
-void check_dim(const T& mat, const V nrows, const V ncols, const std::string msg) {
+void check_dim(const T& mat, const V nrows, const V ncols,
+               const std::string msg) {
   ASSERT(mat.rows() == nrows, msg << " : " << nrows << " rows "
                                   << " != " << mat.rows() << " rows");
   ASSERT(mat.cols() == ncols, msg << " : " << ncols << " cols "
@@ -455,23 +484,28 @@ void check_dim(const T& mat, const V nrows, const V ncols, const std::string msg
 }
 
 template <typename Derived>
-void print_dim(const Eigen::MatrixBase<Derived>& mat, const std::string msg = "") {
+void print_dim(const Eigen::MatrixBase<Derived>& mat,
+               const std::string msg = "") {
   ELOG(msg << "\n" << mat.rows() << " x " << mat.cols());
 }
 
 template <typename Derived>
-void print_dim(const Eigen::SparseMatrixBase<Derived>& mat, const std::string msg = "") {
+void print_dim(const Eigen::SparseMatrixBase<Derived>& mat,
+               const std::string msg = "") {
   ELOG(msg << "\n" << mat.rows() << " x " << mat.cols());
 }
 
 ////////////////////////////////////////////////////////////////
 template <typename Derived, typename Rows, typename OtherDerived>
-void subset_rows(const Eigen::MatrixBase<Derived>& X, const Rows& rows, Eigen::MatrixBase<OtherDerived> const& ret) {
-  Eigen::MatrixBase<OtherDerived>& R = const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
+void subset_rows(const Eigen::MatrixBase<Derived>& X, const Rows& rows,
+                 Eigen::MatrixBase<OtherDerived> const& ret) {
+  Eigen::MatrixBase<OtherDerived>& R =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
   using Index = typename Derived::Index;
   Index i = 0;
   if (R.rows() != static_cast<Index>(rows.size()) || X.cols() != R.cols()) {
-    WLOG("resizing the matrix of " << R.rows() << " x " << R.cols() << " -> " << rows.size() << " x " << X.cols());
+    WLOG("resizing the matrix of " << R.rows() << " x " << R.cols() << " -> "
+                                   << rows.size() << " x " << X.cols());
     R.derived().resize(rows.size(), X.cols());
   }
 
@@ -482,12 +516,15 @@ void subset_rows(const Eigen::MatrixBase<Derived>& X, const Rows& rows, Eigen::M
 }
 
 template <typename Derived, typename Cols, typename OtherDerived>
-void subset_cols(const Eigen::MatrixBase<Derived>& X, const Cols& cols, Eigen::MatrixBase<OtherDerived> const& ret) {
-  Eigen::MatrixBase<OtherDerived>& R = const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
+void subset_cols(const Eigen::MatrixBase<Derived>& X, const Cols& cols,
+                 Eigen::MatrixBase<OtherDerived> const& ret) {
+  Eigen::MatrixBase<OtherDerived>& R =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
   using Index = typename Derived::Index;
   Index i = 0;
   if (R.cols() != static_cast<Index>(cols.size()) || X.rows() != R.rows()) {
-    WLOG("resizing the matrix of " << R.rows() << " x " << R.cols() << " -> " << X.rows() << " x " << cols.size());
+    WLOG("resizing the matrix of " << R.rows() << " x " << R.cols() << " -> "
+                                   << X.rows() << " x " << cols.size());
     R.derived().resize(X.rows(), cols.size());
   }
 
@@ -501,7 +538,9 @@ void subset_cols(const Eigen::MatrixBase<Derived>& X, const Cols& cols, Eigen::M
 template <typename T>
 struct is_obs_op {
   using Scalar = typename T::Scalar;
-  const Scalar operator()(const Scalar& x) const { return std::isfinite(x) ? one_val : zero_val; }
+  const Scalar operator()(const Scalar& x) const {
+    return std::isfinite(x) ? one_val : zero_val;
+  }
   static constexpr Scalar one_val = 1.0;
   static constexpr Scalar zero_val = 0.0;
 };
@@ -515,7 +554,8 @@ struct add_pseudo_op {
 };
 
 template <typename T1, typename T2, typename Ret>
-void XY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, Eigen::MatrixBase<Ret>& ret,
+void XY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+             Eigen::MatrixBase<Ret>& ret,
              const typename Ret::Scalar pseudo = 1.0) {
   is_obs_op<T1> op1;
   is_obs_op<T2> op2;
@@ -523,7 +563,8 @@ void XY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, Eig
 }
 
 template <typename T1, typename T2, typename Ret>
-void XY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, Eigen::SparseMatrixBase<Ret>& ret,
+void XY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+             Eigen::SparseMatrixBase<Ret>& ret,
              const typename Ret::Scalar pseudo = 1.0) {
   is_obs_op<T1> op1;
   is_obs_op<T2> op2;
@@ -534,18 +575,21 @@ void XY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, Eig
 }
 
 template <typename T1, typename T2, typename T3, typename Ret>
-void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, const Eigen::MatrixBase<T3>& Z,
-              Eigen::MatrixBase<Ret>& ret, const typename Ret::Scalar pseudo = 1.0) {
+void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+              const Eigen::MatrixBase<T3>& Z, Eigen::MatrixBase<Ret>& ret,
+              const typename Ret::Scalar pseudo = 1.0) {
   is_obs_op<T1> op1;
   is_obs_op<T2> op2;
   is_obs_op<T3> op3;
 
-  ret.derived() = (X.unaryExpr(op1) * Y.unaryExpr(op2) * Z.unaryExpr(op3)).array() + pseudo;
+  ret.derived() =
+      (X.unaryExpr(op1) * Y.unaryExpr(op2) * Z.unaryExpr(op3)).array() + pseudo;
 }
 
 template <typename T1, typename T2, typename T3, typename Ret>
-void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, const Eigen::MatrixBase<T3>& Z,
-              Eigen::SparseMatrixBase<Ret>& ret, const typename Ret::Scalar pseudo = 1.0) {
+void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+              const Eigen::MatrixBase<T3>& Z, Eigen::SparseMatrixBase<Ret>& ret,
+              const typename Ret::Scalar pseudo = 1.0) {
   is_obs_op<T1> op1;
   is_obs_op<T2> op2;
   is_obs_op<T3> op3;
@@ -557,8 +601,10 @@ void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, co
 }
 
 template <typename T1, typename T2, typename T3, typename Ret>
-void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, const Eigen::SparseMatrixBase<T3>& Z,
-              Eigen::SparseMatrixBase<Ret>& ret, const typename Ret::Scalar pseudo = 1.0) {
+void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+              const Eigen::SparseMatrixBase<T3>& Z,
+              Eigen::SparseMatrixBase<Ret>& ret,
+              const typename Ret::Scalar pseudo = 1.0) {
   is_obs_op<T1> op1;
   is_obs_op<T2> op2;
   is_obs_op<T3> op3;
@@ -571,20 +617,23 @@ void XYZ_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, co
 
 ////////////////////////////////////////////////////////////////
 template <typename T1, typename T2, typename Ret>
-void XtY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, Eigen::MatrixBase<Ret>& ret,
+void XtY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+              Eigen::MatrixBase<Ret>& ret,
               const typename Ret::Scalar pseudo = 1.0) {
   XY_nobs(X.transpose(), Y, ret, pseudo);
 }
 
 template <typename T1, typename T2, typename Ret>
-void XtY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y, Eigen::SparseMatrixBase<Ret>& ret,
+void XtY_nobs(const Eigen::MatrixBase<T1>& X, const Eigen::MatrixBase<T2>& Y,
+              Eigen::SparseMatrixBase<Ret>& ret,
               const typename Ret::Scalar pseudo = 1.0) {
   XY_nobs(X.transpose(), Y, ret, pseudo);
 }
 
 ////////////////////////////////////////////////////////////////
 template <typename Derived>
-auto standardize(Eigen::MatrixBase<Derived>& Xraw, const typename Derived::Scalar EPS = 1e-8) {
+auto standardize(Eigen::MatrixBase<Derived>& Xraw,
+                 const typename Derived::Scalar EPS = 1e-8) {
   using Index = typename Derived::Index;
   using Scalar = typename Derived::Scalar;
   using mat_t = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
@@ -601,7 +650,8 @@ auto standardize(Eigen::MatrixBase<Derived>& Xraw, const typename Derived::Scala
   // calculate statistics
   remove_missing(Xraw, X);
   const RowVec x_mean = X.colwise().sum().cwiseQuotient(num_obs);
-  const RowVec x2_mean = X.cwiseProduct(X).colwise().sum().cwiseQuotient(num_obs);
+  const RowVec x2_mean =
+      X.cwiseProduct(X).colwise().sum().cwiseQuotient(num_obs);
   const RowVec x_sd = (x2_mean - x_mean.cwiseProduct(x_mean)).cwiseSqrt();
 
   // standardize
@@ -618,28 +668,31 @@ auto standardize(Eigen::MatrixBase<Derived>& Xraw, const typename Derived::Scala
 }
 
 ////////////////////////////////////////////////////////////////
-template<typename T = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >
+template <typename T = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> >
 struct column_var_op_t {
   using Index = typename T::Index;
   using Scalar = typename T::Scalar;
 
-  explicit column_var_op_t(const T &xraw) : Xraw(xraw), n(xraw.rows()), m(xraw.cols()) {
+  explicit column_var_op_t(const T& xraw)
+      : Xraw(xraw), n(xraw.rows()), m(xraw.cols()) {
     onesN.setOnes(n, 1);
     R.resize(m, 1);
     x_mean.resize(m, 1);
     x2_mean.resize(m, 1);
   }
 
-  const T &operator()() {
+  const T& operator()() {
     x_mean = Xraw.transpose() * onesN / static_cast<Scalar>(n);
-    x2_mean = Xraw.cwiseProduct(Xraw).transpose() * onesN / static_cast<Scalar>(n);
+    x2_mean =
+        Xraw.cwiseProduct(Xraw).transpose() * onesN / static_cast<Scalar>(n);
     R = x2_mean - x_mean.cwiseProduct(x_mean);
     return R;
   }
 
-  const T &Xraw;
+  const T& Xraw;
   const Index n;
   const Index m;
+
  private:
   T onesN;
   T x_mean;
@@ -651,13 +704,15 @@ struct column_var_op_t {
 
 ////////////////////////////////////////////////////////////////
 template <typename Derived, typename OtherDerived>
-void column_var(Eigen::MatrixBase<Derived> const& Xraw, Eigen::MatrixBase<OtherDerived> const & ret) {
+void column_var(Eigen::MatrixBase<Derived> const& Xraw,
+                Eigen::MatrixBase<OtherDerived> const& ret) {
   using Index = typename Derived::Index;
   using Scalar = typename Derived::Scalar;
   using mat_t = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
   using ColVec = typename Eigen::internal::plain_col_type<Derived>::type;
 
-  Eigen::MatrixBase<OtherDerived>& R = const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
+  Eigen::MatrixBase<OtherDerived>& R =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(ret);
   const Index p = Xraw.cols();
   R.resize(p, 1);
   is_obs_op<mat_t> obs_op;
@@ -669,7 +724,8 @@ void column_var(Eigen::MatrixBase<Derived> const& Xraw, Eigen::MatrixBase<OtherD
   // calculate statistics
   remove_missing(Xraw.transpose(), X);
   const ColVec x_mean = X.rowwise().sum().cwiseQuotient(num_obs);
-  const ColVec x2_mean = X.cwiseProduct(X).rowwise().sum().cwiseQuotient(num_obs);
+  const ColVec x2_mean =
+      X.cwiseProduct(X).rowwise().sum().cwiseQuotient(num_obs);
 
   R = x2_mean - x_mean.cwiseProduct(x_mean);
 }
@@ -694,8 +750,10 @@ auto column_mean(Eigen::MatrixBase<Derived> const& Xraw) {
 
 ////////////////////////////////////////////////////////////////
 template <typename Derived, typename OtherDerived>
-void safe_svd(const Eigen::MatrixBase<Derived>& X, const typename Derived::Scalar elbow_cutoff,
-              Eigen::MatrixBase<OtherDerived> const& uu, Eigen::MatrixBase<OtherDerived> const& vv,
+void safe_svd(const Eigen::MatrixBase<Derived>& X,
+              const typename Derived::Scalar elbow_cutoff,
+              Eigen::MatrixBase<OtherDerived> const& uu,
+              Eigen::MatrixBase<OtherDerived> const& vv,
               Eigen::MatrixBase<OtherDerived> const& dd) {
   using Scalar = typename Derived::Scalar;
   using Index = typename Derived::Index;
@@ -729,11 +787,15 @@ void safe_svd(const Eigen::MatrixBase<Derived>& X, const typename Derived::Scala
     }
   }
 
-  TLOG("Included number of components : " << num_comp << " " << cumsum << " / " << eigen_sum);
+  TLOG("Included number of components : " << num_comp << " " << cumsum << " / "
+                                          << eigen_sum);
 
-  Eigen::MatrixBase<OtherDerived>& U = const_cast<Eigen::MatrixBase<OtherDerived>&>(uu);
-  Eigen::MatrixBase<OtherDerived>& V = const_cast<Eigen::MatrixBase<OtherDerived>&>(vv);
-  Eigen::MatrixBase<OtherDerived>& D = const_cast<Eigen::MatrixBase<OtherDerived>&>(dd);
+  Eigen::MatrixBase<OtherDerived>& U =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(uu);
+  Eigen::MatrixBase<OtherDerived>& V =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(vv);
+  Eigen::MatrixBase<OtherDerived>& D =
+      const_cast<Eigen::MatrixBase<OtherDerived>&>(dd);
 
   U.derived().resize(n, num_comp);
   V.derived().resize(p, num_comp);

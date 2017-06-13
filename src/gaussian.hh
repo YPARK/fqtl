@@ -4,14 +4,17 @@
 // E[Y] = eta_mean
 // V[Y] = vmin + (vmax - vmin) * sigmoid(eta_var)
 
-template <typename T> struct gaussian_model_t {
+template <typename T>
+struct gaussian_model_t {
   using Scalar = typename T::Scalar;
   using Index = typename T::Index;
   using Data = T;
 
-  template <typename X> using Dense = Eigen::MatrixBase<X>;
+  template <typename X>
+  using Dense = Eigen::MatrixBase<X>;
 
-  template <typename X> using Sparse = Eigen::SparseMatrixBase<X>;
+  template <typename X>
+  using Sparse = Eigen::SparseMatrixBase<X>;
 
   struct Vmax_t : public check_positive_t<Scalar> {
     explicit Vmax_t(Scalar v) : check_positive_t<Scalar>(v) {}
@@ -22,9 +25,16 @@ template <typename T> struct gaussian_model_t {
   };
 
   explicit gaussian_model_t(const T &yy, const Vmin_t &Vmin, const Vmax_t &Vmax)
-      : n(yy.rows()), m(yy.cols()), Y_safe(n, m), llik_mat(n, m),
-        sampled_mat(n, m), resid_mat(n, m), var_mat(n, m), onesN(n, 1),
-        evidence_mat(n, m), var_op(Vmin.val, Vmax.val) {
+      : n(yy.rows()),
+        m(yy.cols()),
+        Y_safe(n, m),
+        llik_mat(n, m),
+        sampled_mat(n, m),
+        resid_mat(n, m),
+        var_mat(n, m),
+        onesN(n, 1),
+        evidence_mat(n, m),
+        var_op(Vmin.val, Vmax.val) {
     is_obs_op<T> obs_op;
     evidence_mat = yy.unaryExpr(obs_op);
     remove_missing(yy, Y_safe);
@@ -62,15 +72,17 @@ template <typename T> struct gaussian_model_t {
   const Index m;
   const T Y_safe;
 
-private:
-  template <typename Derived> void alloc_memory(const Dense<Derived> &yy) {
+ private:
+  template <typename Derived>
+  void alloc_memory(const Dense<Derived> &yy) {
     llik_mat.setZero();
     sampled_mat.setZero();
     resid_mat.setZero();
     var_mat.setZero();
   }
 
-  template <typename Derived> void alloc_memory(const Sparse<Derived> &yy) {
+  template <typename Derived>
+  void alloc_memory(const Sparse<Derived> &yy) {
     initialize(yy, llik_mat, 0.0);
     initialize(yy, sampled_mat, 0.0);
     initialize(yy, resid_mat, 0.0);
@@ -80,7 +92,6 @@ private:
   // -0.5 * ln Var - 0.5 * (y - mu)^2 / Var
   template <typename M1, typename M2>
   const T &_eval(const M1 &eta_mean, const M2 &eta_var) {
-
     resid_mat = Y_safe - eta_mean;
     var_mat = eta_var.unaryExpr(var_op);
 

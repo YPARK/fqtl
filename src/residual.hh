@@ -16,7 +16,8 @@ template <typename Param, typename Scalar, typename Matrix>
 struct get_residual_type;
 
 template <typename Param, typename Scalar>
-struct get_residual_type<Param, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
+struct get_residual_type<
+    Param, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
   using type = residual_t<DenseReprMat<Scalar>, Param>;
 };
 
@@ -33,21 +34,24 @@ auto make_residual_eta(const Eigen::MatrixBase<yDerived>& yy, Param& theta) {
 }
 
 template <typename yDerived, typename Param>
-auto make_residual_eta(const Eigen::SparseMatrixBase<yDerived>& yy, Param& theta) {
+auto make_residual_eta(const Eigen::SparseMatrixBase<yDerived>& yy,
+                       Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = residual_t<SparseReprMat<Scalar>, Param>;
   return Reg(yy.derived(), theta);
 }
 
 template <typename yDerived, typename Param>
-auto make_residual_eta_ptr(const Eigen::MatrixBase<yDerived>& yy, Param& theta) {
+auto make_residual_eta_ptr(const Eigen::MatrixBase<yDerived>& yy,
+                           Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = residual_t<DenseReprMat<Scalar>, Param>;
   return std::make_shared<Reg>(yy.derived(), theta);
 }
 
 template <typename yDerived, typename Param>
-auto make_residual_eta_ptr(const Eigen::SparseMatrixBase<yDerived>& yy, Param& theta) {
+auto make_residual_eta_ptr(const Eigen::SparseMatrixBase<yDerived>& yy,
+                           Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = residual_t<SparseReprMat<Scalar>, Param>;
   return std::make_shared<Reg>(yy.derived(), theta);
@@ -65,7 +69,11 @@ struct residual_t {
   using ReprMatrix = typename Repr::DataMatrix;
 
   explicit residual_t(const ReprMatrix& yy, Param& theta)
-      : n(yy.rows()), m(yy.cols()), Nobs(n, m), Theta(theta), Eta(make_gaus_repr(yy)) {
+      : n(yy.rows()),
+        m(yy.cols()),
+        Nobs(n, m),
+        Theta(theta),
+        Eta(make_gaus_repr(yy)) {
     check_dim(Theta, n, m, "Theta in residual_t");
     check_dim(Eta, n, m, "Eta in residual_t");
     copy_matrix(mean_param(Theta), Nobs);
@@ -110,7 +118,8 @@ struct residual_t {
 
   void eval_hyper_sgd() {
     Eta.summarize();
-    eval_hyperparam_sgd(Theta, Eta.get_grad_type1(), Eta.get_grad_type2(), Nobs);
+    eval_hyperparam_sgd(Theta, Eta.get_grad_type1(), Eta.get_grad_type2(),
+                        Nobs);
   }
 
   void update_hyper_sgd(const Scalar rate) {

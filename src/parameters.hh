@@ -27,8 +27,7 @@ struct tag_param_slab {};  // q(theta[j,g]) ~ N(beta[j,g], 1/gamma[j,g])
 struct tag_param_spike_slab {
 };  // q(theta[j,g]) ~ alpha[j,g] * N(beta[j,g], 1/gamma[j,g]) + (1-alpha[j,g])
     // * delta(theta)
-struct tag_param_col_slab {
-};  // q(theta[j,g]) ~ N(beta[j,g], 1/gamma[g])
+struct tag_param_col_slab {};  // q(theta[j,g]) ~ N(beta[j,g], 1/gamma[g])
 struct tag_param_col_spike_slab {
 };  // q(theta[j,g]) ~ alpha[g] * N(beta[j,g], 1/gamma[g]) + (1-alpha[g]) *
     // delta(theta)

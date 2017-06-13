@@ -20,7 +20,8 @@ template <typename Param, typename Scalar, typename Matrix>
 struct get_sharedeffect_type;
 
 template <typename Param, typename Scalar>
-struct get_sharedeffect_type<Param, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
+struct get_sharedeffect_type<
+    Param, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
   using type = sharedeffect_t<DenseReprMat<Scalar>, Param>;
 };
 
@@ -30,14 +31,17 @@ struct get_sharedeffect_type<Param, Scalar, Eigen::SparseMatrix<Scalar> > {
 };
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_sharedeffect_eta(const Eigen::MatrixBase<xDerived>& xx, const Eigen::MatrixBase<yDerived>& yy, Param& theta) {
+auto make_sharedeffect_eta(const Eigen::MatrixBase<xDerived>& xx,
+                           const Eigen::MatrixBase<yDerived>& yy,
+                           Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = sharedeffect_t<DenseReprMat<Scalar>, Param>;
   return Reg(xx.derived(), yy.derived(), theta);
 }
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_sharedeffect_eta(const Eigen::SparseMatrixBase<xDerived>& xx, const Eigen::SparseMatrixBase<yDerived>& yy,
+auto make_sharedeffect_eta(const Eigen::SparseMatrixBase<xDerived>& xx,
+                           const Eigen::SparseMatrixBase<yDerived>& yy,
                            Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = sharedeffect_t<SparseReprMat<Scalar>, Param>;
@@ -45,7 +49,8 @@ auto make_sharedeffect_eta(const Eigen::SparseMatrixBase<xDerived>& xx, const Ei
 }
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_sharedeffect_eta_ptr(const Eigen::MatrixBase<xDerived>& xx, const Eigen::MatrixBase<yDerived>& yy,
+auto make_sharedeffect_eta_ptr(const Eigen::MatrixBase<xDerived>& xx,
+                               const Eigen::MatrixBase<yDerived>& yy,
                                Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = sharedeffect_t<DenseReprMat<Scalar>, Param>;
@@ -53,7 +58,8 @@ auto make_sharedeffect_eta_ptr(const Eigen::MatrixBase<xDerived>& xx, const Eige
 }
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_sharedeffect_eta_ptr(const Eigen::SparseMatrixBase<xDerived>& xx, const Eigen::SparseMatrixBase<yDerived>& yy,
+auto make_sharedeffect_eta_ptr(const Eigen::SparseMatrixBase<xDerived>& xx,
+                               const Eigen::SparseMatrixBase<yDerived>& yy,
                                Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = sharedeffect_t<SparseReprMat<Scalar>, Param>;
@@ -71,17 +77,20 @@ template <typename Param, typename Scalar, typename Matrix>
 struct get_transpose_sharedeffect_type;
 
 template <typename Param, typename Scalar>
-struct get_transpose_sharedeffect_type<Param, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
+struct get_transpose_sharedeffect_type<
+    Param, Scalar, Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> > {
   using type = transpose_sharedeffect_t<DenseReprMat<Scalar>, Param>;
 };
 
 template <typename Param, typename Scalar>
-struct get_transpose_sharedeffect_type<Param, Scalar, Eigen::SparseMatrix<Scalar> > {
+struct get_transpose_sharedeffect_type<Param, Scalar,
+                                       Eigen::SparseMatrix<Scalar> > {
   using type = transpose_sharedeffect_t<SparseReprMat<Scalar>, Param>;
 };
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_transpose_sharedeffect_eta(const Eigen::MatrixBase<xDerived>& xx, const Eigen::MatrixBase<yDerived>& yy,
+auto make_transpose_sharedeffect_eta(const Eigen::MatrixBase<xDerived>& xx,
+                                     const Eigen::MatrixBase<yDerived>& yy,
                                      Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = transpose_sharedeffect_t<DenseReprMat<Scalar>, Param>;
@@ -89,15 +98,17 @@ auto make_transpose_sharedeffect_eta(const Eigen::MatrixBase<xDerived>& xx, cons
 }
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_transpose_sharedeffect_eta(const Eigen::SparseMatrixBase<xDerived>& xx,
-                                     const Eigen::SparseMatrixBase<yDerived>& yy, Param& theta) {
+auto make_transpose_sharedeffect_eta(
+    const Eigen::SparseMatrixBase<xDerived>& xx,
+    const Eigen::SparseMatrixBase<yDerived>& yy, Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = transpose_sharedeffect_t<SparseReprMat<Scalar>, Param>;
   return Reg(xx.derived(), yy.derived(), theta);
 }
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_transpose_sharedeffect_eta_ptr(const Eigen::MatrixBase<xDerived>& xx, const Eigen::MatrixBase<yDerived>& yy,
+auto make_transpose_sharedeffect_eta_ptr(const Eigen::MatrixBase<xDerived>& xx,
+                                         const Eigen::MatrixBase<yDerived>& yy,
                                          Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = transpose_sharedeffect_t<DenseReprMat<Scalar>, Param>;
@@ -105,8 +116,9 @@ auto make_transpose_sharedeffect_eta_ptr(const Eigen::MatrixBase<xDerived>& xx, 
 }
 
 template <typename xDerived, typename yDerived, typename Param>
-auto make_transpose_sharedeffect_eta_ptr(const Eigen::SparseMatrixBase<xDerived>& xx,
-                                         const Eigen::SparseMatrixBase<yDerived>& yy, Param& theta) {
+auto make_transpose_sharedeffect_eta_ptr(
+    const Eigen::SparseMatrixBase<xDerived>& xx,
+    const Eigen::SparseMatrixBase<yDerived>& yy, Param& theta) {
   using Scalar = typename yDerived::Scalar;
   using Reg = transpose_sharedeffect_t<SparseReprMat<Scalar>, Param>;
   return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
@@ -122,7 +134,8 @@ struct sharedeffect_t {
   using Index = typename param_traits<Param>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit sharedeffect_t(const ReprMatrix& xx, const ReprMatrix& yy, Param& theta)
+  explicit sharedeffect_t(const ReprMatrix& xx, const ReprMatrix& yy,
+                          Param& theta)
       : n(xx.rows()),
         p(xx.cols()),
         m(yy.cols()),
@@ -172,8 +185,10 @@ struct sharedeffect_t {
   Repr Eta;
 
   void resolve() {
-    update_mean(Eta, X * mean_param(Theta) * onesM.transpose());  // [n x p] [p x 1] [1 x m]
-    update_var(Eta, Xsq * var_param(Theta) * onesM.transpose());  // [n x p] [p x 1] [1 x m]
+    update_mean(Eta, X * mean_param(Theta) *
+                         onesM.transpose());  // [n x p] [p x 1] [1 x m]
+    update_var(Eta, Xsq * var_param(Theta) *
+                        onesM.transpose());  // [n x p] [p x 1] [1 x m]
   }
 
   template <typename RAND>
@@ -228,7 +243,8 @@ struct transpose_sharedeffect_t {
   using Index = typename param_traits<Param>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit transpose_sharedeffect_t(const ReprMatrix& xx, const ReprMatrix& yy, Param& theta)
+  explicit transpose_sharedeffect_t(const ReprMatrix& xx, const ReprMatrix& yy,
+                                    Param& theta)
       : n(yy.rows()),
         p(xx.rows()),
         m(yy.cols()),
@@ -242,7 +258,8 @@ struct transpose_sharedeffect_t {
         tempM(1, m),
         Eta(make_gaus_repr(yy)) {
     check_dim(xx, p, m, "X in sharedeffect_t");
-    check_dim(Theta, static_cast<Index>(1), p, "Theta in transpose_sharedeffect_t");
+    check_dim(Theta, static_cast<Index>(1), p,
+              "Theta in transpose_sharedeffect_t");
     check_dim(Eta, n, m, "Eta in transpose_sharedeffect_t");
     copy_matrix(mean_param(Theta), Nobs);
     onesN.setOnes();

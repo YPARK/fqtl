@@ -20,7 +20,8 @@ void func_apply(Func &&func, std::tuple<Ts...> &&tup);
 ////////////////////////////////////////////////////////////////
 // apply function, one by one each, to each element of tuple
 // 1. recurse
-template <typename Func, typename Tuple, unsigned N> struct func_apply_impl_t {
+template <typename Func, typename Tuple, unsigned N>
+struct func_apply_impl_t {
   static void run(Func &&f, Tuple &&tup) {
     std::forward<Func>(f)(std::get<N>(std::forward<Tuple>(tup)));
     func_apply_impl_t<Func, Tuple, N - 1>::run(std::forward<Func>(f),

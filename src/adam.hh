@@ -1,6 +1,6 @@
-#include "eigen_util.hh"
 #include <cmath>
 #include <memory>
+#include "eigen_util.hh"
 
 #ifndef ADAM_HH_
 #define ADAM_HH_
@@ -28,15 +28,16 @@ template <typename T, typename Scalar, typename Index>
 struct adam_t;
 
 template <typename Scalar, typename Index>
-void reset_adam(adam_t<Scalar, Scalar, Index>& adam, const Scalar r_m, const Scalar r_v, const Index n1,
-                const Index n2) {
+void reset_adam(adam_t<Scalar, Scalar, Index>& adam, const Scalar r_m,
+                const Scalar r_v, const Index n1, const Index n2) {
   adam.G = 0;
   adam.M = 0;
   adam.V = 0;
 }
 
 template <typename Mat, typename Scalar, typename Index>
-void reset_adam(adam_t<Mat, Scalar, Index>& adam, const Scalar r_m, const Scalar r_v, const Index n1, const Index n2) {
+void reset_adam(adam_t<Mat, Scalar, Index>& adam, const Scalar r_m,
+                const Scalar r_v, const Index n1, const Index n2) {
   adam.G.resize(n1, n2);
   adam.M.resize(n1, n2);
   adam.V.resize(n1, n2);
@@ -47,7 +48,8 @@ void reset_adam(adam_t<Mat, Scalar, Index>& adam, const Scalar r_m, const Scalar
 
 template <typename Scalar>
 struct adam_update_op_t {
-  explicit adam_update_op_t(const Scalar& _step, const Scalar r_m, const Scalar r_v)
+  explicit adam_update_op_t(const Scalar& _step, const Scalar r_m,
+                            const Scalar r_v)
       : step(_step), rate_m(r_m), rate_v(r_v) {}
   const Scalar operator()(const Scalar mm, const Scalar vv) const {
     const Scalar mm_stuff = mm / (one_val - std::pow(rate_m, step));
@@ -64,7 +66,8 @@ struct adam_update_op_t {
 
 template <typename T, typename Scalar, typename Index = unsigned int>
 struct adam_t {
-  explicit adam_t(const Scalar r_m, const Scalar r_v, const Index n1 = 1, const Index n2 = 1)
+  explicit adam_t(const Scalar r_m, const Scalar r_v, const Index n1 = 1,
+                  const Index n2 = 1)
       : t(0.0), update_op(this->t, r_m, r_v), rate_m(r_m), rate_v(r_v) {
     reset_adam(*this, r_m, r_v, n1, n2);
   }
@@ -80,7 +83,8 @@ struct adam_t {
 };
 
 template <typename T, typename Scalar>
-const T& update_adam(adam_t<T, Scalar>& adam, const Eigen::MatrixBase<T>& newG) {
+const T& update_adam(adam_t<T, Scalar>& adam,
+                     const Eigen::MatrixBase<T>& newG) {
   adam.t++;
   adam.M = adam.M * adam.rate_m + newG * (1.0 - adam.rate_m);
   adam.V = adam.V * adam.rate_v + newG.cwiseProduct(newG) * (1.0 - adam.rate_v);
@@ -89,7 +93,8 @@ const T& update_adam(adam_t<T, Scalar>& adam, const Eigen::MatrixBase<T>& newG) 
 }
 
 template <typename T, typename Scalar>
-const T& update_adam(adam_t<T, Scalar>& adam, const Eigen::SparseMatrixBase<T>& newG) {
+const T& update_adam(adam_t<T, Scalar>& adam,
+                     const Eigen::SparseMatrixBase<T>& newG) {
   adam.t++;
   adam.M = adam.M * adam.rate_m + newG * (1.0 - adam.rate_m);
   adam.V = adam.V * adam.rate_v + newG.cwiseProduct(newG) * (1.0 - adam.rate_v);

@@ -21,7 +21,7 @@
 fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
              y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
              c.mean.loc = NULL, cis.dist = 5e5, 
-             options = list(model='gaussian', vbiter=1000, tol=1e-8,
+             options = list(vbiter=1000, tol=1e-8,
                            gammax=100, rate=0.01, decay=-0.1, pi.ub=-1,
                            pi.lb=-4, tau.lb=-10, tau.ub=-4,
                            verbose=TRUE))

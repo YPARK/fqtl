@@ -72,7 +72,9 @@ bool check_bed_format(std::ifstream& ifs) {
 // actually read genotype data //
 /////////////////////////////////
 
-Rcpp::IntegerMatrix _read_plink_bed(const std::string file_name, const unsigned int N, const unsigned int NSNP) {
+Rcpp::IntegerMatrix _read_plink_bed(const std::string file_name,
+                                    const unsigned int N,
+                                    const unsigned int NSNP) {
   TLOG("plink file " << file_name);
 
   ASSERT_IM_RET(N > 0, "Invalid number of individuals " << N);
@@ -85,14 +87,18 @@ Rcpp::IntegerMatrix _read_plink_bed(const std::string file_name, const unsigned 
 
   ifs.seekg(0, std::ios::end);
   const unsigned int FILE_LEN = ifs.tellg();
-  const double byte_per_snp = std::ceil(static_cast<double>(N) / static_cast<double>(GENO_PER_BYTE));
+  const double byte_per_snp =
+      std::ceil(static_cast<double>(N) / static_cast<double>(GENO_PER_BYTE));
   const unsigned int BYTE_PER_SNP = static_cast<unsigned int>(byte_per_snp);
   const unsigned int _nsnp = (FILE_LEN - SKIP_BYTE) / BYTE_PER_SNP;
 
-  ASSERT_IM_RET(_nsnp == NSNP, "Check " << file_name << " contains different number of SNPs : " << _nsnp
-                                        << " but expected " << NSNP)
+  ASSERT_IM_RET(_nsnp == NSNP,
+                "Check " << file_name << " contains different number of SNPs : "
+                         << _nsnp << " but expected " << NSNP)
 
-  ASSERT_IM_RET(FILE_LEN > 3, "Check " << file_name << ", too small file size : " << FILE_LEN);
+  ASSERT_IM_RET(FILE_LEN > 3, "Check "
+                                  << file_name
+                                  << ", too small file size : " << FILE_LEN);
 
   // check BED format
   ASSERT_IM_RET(check_bed_format(ifs), "not a proper BED file");
@@ -112,7 +118,8 @@ Rcpp::IntegerMatrix _read_plink_bed(const std::string file_name, const unsigned 
     prog.increment();
 
     // 1. read
-    ifs.read(reinterpret_cast<char*>(raw_data.data()), sizeof(BYTE) * BYTE_PER_SNP);
+    ifs.read(reinterpret_cast<char*>(raw_data.data()),
+             sizeof(BYTE) * BYTE_PER_SNP);
     // 2. parse & save
     unsigned int i = 0;
     for (auto four_geno : raw_data) {

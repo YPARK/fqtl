@@ -5,7 +5,6 @@
 #include <vector>
 
 struct options_t {
-
   explicit options_t() {
     VBITER = 1000;
     MINITER = 100;

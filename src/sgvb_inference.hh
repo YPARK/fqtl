@@ -40,7 +40,6 @@ auto impl_fit_eta(Model &model, const Opt &opt,
                   std::tuple<MeanEtas...> &&mean_eta_tup,
                   std::tuple<VarEtas...> &&var_eta_tup,
                   std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup) {
-
   using Scalar = typename Model::Scalar;
   using Index = typename Model::Index;
   using Mat = typename Model::Data;
@@ -118,8 +117,7 @@ auto impl_fit_eta(Model &model, const Opt &opt,
 
     conv.add(model.llik().transpose() * onesN);
     bool converged = conv.converged(opt.vbtol(), opt.miniter());
-    if (opt.verbose())
-      conv.print(Rcpp::Rcerr);
+    if (opt.verbose()) conv.print(Rcpp::Rcerr);
     if (converged) {
       TLOG("Converged initial log-likelihood");
       break;
@@ -139,8 +137,7 @@ auto impl_fit_eta(Model &model, const Opt &opt,
 
     conv.add(model.llik().transpose() * onesN);
     bool converged = conv.converged(opt.vbtol(), opt.miniter());
-    if (opt.verbose())
-      conv.print(Rcpp::Rcerr);
+    if (opt.verbose()) conv.print(Rcpp::Rcerr);
     if (converged) {
       TLOG("Converged hyperparameter log-likelihood");
       break;

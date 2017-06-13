@@ -1,7 +1,8 @@
 #ifndef PARAM_SPIKE_SLAB_HH_
 #define PARAM_SPIKE_SLAB_HH_
 
-template <typename T, typename S> struct param_spike_slab_t {
+template <typename T, typename S>
+struct param_spike_slab_t {
   typedef T data_t;
   typedef typename T::Scalar scalar_t;
   typedef typename T::Index index_t;
@@ -12,20 +13,39 @@ template <typename T, typename S> struct param_spike_slab_t {
   template <typename Opt>
   explicit param_spike_slab_t(const index_t n1, const index_t n2,
                               const Opt &opt)
-      : nrow(n1), ncol(n2), alpha(nrow, ncol), alpha_aux(nrow, ncol),
-        beta(nrow, ncol), gamma(nrow, ncol), gamma_aux(nrow, ncol),
-        theta(nrow, ncol), theta_var(nrow, ncol), grad_alpha_aux(nrow, ncol),
-        grad_beta(nrow, ncol), grad_gamma_aux(nrow, ncol), pi_aux(0.0),
-        r_m(opt.rate_m()), r_v(opt.rate_v()), pi_lodds_lb(opt.pi_lodds_lb()),
-        pi_lodds_ub(opt.pi_lodds_ub()), tau_lodds_lb(opt.tau_lodds_lb()),
-        tau_lodds_ub(opt.tau_lodds_ub()), adam_alpha_aux(r_m, r_v, nrow, ncol),
-        adam_beta(r_m, r_v, nrow, ncol), adam_gamma_aux(r_m, r_v, nrow, ncol),
-        adam_pi_aux(r_m, r_v), adam_tau_aux(r_m, r_v),
+      : nrow(n1),
+        ncol(n2),
+        alpha(nrow, ncol),
+        alpha_aux(nrow, ncol),
+        beta(nrow, ncol),
+        gamma(nrow, ncol),
+        gamma_aux(nrow, ncol),
+        theta(nrow, ncol),
+        theta_var(nrow, ncol),
+        grad_alpha_aux(nrow, ncol),
+        grad_beta(nrow, ncol),
+        grad_gamma_aux(nrow, ncol),
+        pi_aux(0.0),
+        r_m(opt.rate_m()),
+        r_v(opt.rate_v()),
+        pi_lodds_lb(opt.pi_lodds_lb()),
+        pi_lodds_ub(opt.pi_lodds_ub()),
+        tau_lodds_lb(opt.tau_lodds_lb()),
+        tau_lodds_ub(opt.tau_lodds_ub()),
+        adam_alpha_aux(r_m, r_v, nrow, ncol),
+        adam_beta(r_m, r_v, nrow, ncol),
+        adam_gamma_aux(r_m, r_v, nrow, ncol),
+        adam_pi_aux(r_m, r_v),
+        adam_tau_aux(r_m, r_v),
         resolve_prec_op(opt.gammax(), tau_aux),
-        resolve_prec_prior_op(opt.gammax(), tau_aux), resolve_spike_op(pi_aux),
-        grad_alpha_lo_op(pi_aux), grad_alpha_eb_tau_op(tau_val),
-        grad_beta_eb_tau_op(tau_val), grad_gamma_eb_tau_op(tau_val),
-        grad_gamma_chain_op(tau_aux), grad_prior_pi_op(pi_val),
+        resolve_prec_prior_op(opt.gammax(), tau_aux),
+        resolve_spike_op(pi_aux),
+        grad_alpha_lo_op(pi_aux),
+        grad_alpha_beta_gamma_tau_op(tau_val),
+        grad_beta_eb_tau_op(tau_val),
+        grad_gamma_eb_tau_op(tau_val),
+        grad_gamma_chain_op(tau_aux),
+        grad_prior_pi_op(pi_val),
         grad_prior_tau_aux_op(tau_val, tau_aux) {}
 
   const index_t rows() const { return nrow; }
@@ -133,14 +153,16 @@ template <typename T, typename S> struct param_spike_slab_t {
     const scalar_t &lodds;
   } grad_alpha_lo_op;
 
-  struct grad_alpha_eb_tau_t {
-    explicit grad_alpha_eb_tau_t(const scalar_t &_tau_val)
+  // 1/2 * [1 + ln tau/gamma - tau * (beta^2 + 1/gamma)]
+  struct grad_alpha_beta_gamma_tau_t {
+    explicit grad_alpha_beta_gamma_tau_t(const scalar_t &_tau_val)
         : tau_val(_tau_val) {}
     const scalar_t operator()(const scalar_t &b, const scalar_t &g) const {
-      return (b * b + one_val / g) * tau_val;
+      return half_val * (one_val + fasterlog(tau_val) - fasterlog(g) -
+                         tau_val * (b * b + one_val / g));
     }
     const scalar_t &tau_val;
-  } grad_alpha_eb_tau_op;
+  } grad_alpha_beta_gamma_tau_op;
 
   struct grad_alpha_chain_rule_t {
     const scalar_t operator()(const scalar_t &x, const scalar_t &a) const {
@@ -223,9 +245,10 @@ template <typename T, typename S> struct param_spike_slab_t {
     const scalar_t &tau_aux;
   } grad_prior_tau_aux_op;
 
+  static constexpr scalar_t half_val = 0.5;
   static constexpr scalar_t one_val = 1.0;
   static constexpr scalar_t two_val = 2.0;
-  static constexpr scalar_t large_exp_value = 20.0; // exp(20) is too big
+  static constexpr scalar_t large_exp_value = 20.0;  // exp(20) is too big
 };
 
 // clear contents
@@ -337,15 +360,11 @@ void impl_resolve_param(Parameter &P, const tag_param_spike_slab) {
 
 template <typename Parameter>
 void impl_resolve_hyperparam(Parameter &P, const tag_param_spike_slab) {
-  if (P.pi_aux > P.pi_lodds_ub)
-    P.pi_aux = P.pi_lodds_ub;
-  if (P.pi_aux < P.pi_lodds_lb)
-    P.pi_aux = P.pi_lodds_lb;
+  if (P.pi_aux > P.pi_lodds_ub) P.pi_aux = P.pi_lodds_ub;
+  if (P.pi_aux < P.pi_lodds_lb) P.pi_aux = P.pi_lodds_lb;
 
-  if (P.tau_aux > P.tau_lodds_ub)
-    P.tau_aux = P.tau_lodds_ub;
-  if (P.tau_aux < P.tau_lodds_lb)
-    P.tau_aux = P.tau_lodds_lb;
+  if (P.tau_aux > P.tau_lodds_ub) P.tau_aux = P.tau_lodds_ub;
+  if (P.tau_aux < P.tau_lodds_lb) P.tau_aux = P.tau_lodds_lb;
 
   P.pi_val = P.resolve_spike_op(0.0);
   P.tau_val = P.resolve_prec_prior_op();
@@ -412,7 +431,8 @@ void impl_eval_param_sgd(Parameter &P, const M1 &G1, const M2 &G2,
                       P.alpha.binaryExpr(P.beta, P.grad_alpha_g2_op));
 
   // prior udpate with adpative tau
-  P.grad_alpha_aux -= 0.5 * P.beta.binaryExpr(P.gamma, P.grad_alpha_eb_tau_op);
+  P.grad_alpha_aux +=
+      P.beta.binaryExpr(P.gamma, P.grad_alpha_beta_gamma_tau_op);
 
   P.grad_alpha_aux += P.alpha_aux.unaryExpr(P.grad_alpha_lo_op);
 
@@ -464,7 +484,8 @@ void impl_eval_hyperparam_sgd(Parameter &P, const M1 &G1, const M2 &G2,
                       P.alpha.binaryExpr(P.beta, P.grad_alpha_g2_op));
 
   // prior udpate with adpative tau
-  P.grad_alpha_aux -= 0.5 * P.beta.binaryExpr(P.gamma, P.grad_alpha_eb_tau_op);
+  P.grad_alpha_aux +=
+      P.beta.binaryExpr(P.gamma, P.grad_alpha_beta_gamma_tau_op);
 
   P.grad_alpha_aux += P.alpha_aux.unaryExpr(P.grad_alpha_lo_op);
 

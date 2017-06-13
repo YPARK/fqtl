@@ -56,6 +56,8 @@ using BYTE = unsigned char;
 
 auto geno_dosage(const BYTE geno);
 bool check_bed_format(std::ifstream& ifs);
-Rcpp::IntegerMatrix _read_plink_bed(const std::string file_name, const unsigned int N, const unsigned int NSNP);
+Rcpp::IntegerMatrix _read_plink_bed(const std::string file_name,
+                                    const unsigned int N,
+                                    const unsigned int NSNP);
 
 #endif

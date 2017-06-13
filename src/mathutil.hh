@@ -1,11 +1,11 @@
 #ifndef MATHUTIL_HH_
 #define MATHUTIL_HH_
 
+#include <cmath>
+#include <random>
 #include "fastexp.h"
 #include "fastgamma.h"
 #include "fastlog.h"
-#include <cmath>
-#include <random>
 
 ////////////////////////////////////////////////////////////////
 template <typename T>

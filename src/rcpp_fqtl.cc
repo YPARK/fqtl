@@ -1,21 +1,20 @@
 #include "rcpp_fqtl.hh"
 
-#define ASSERT_LIST_RET(cond, msg)                                             \
-  if (!(cond)) {                                                               \
-    ELOG(msg);                                                                 \
-    return Rcpp::List::create();                                               \
+#define ASSERT_LIST_RET(cond, msg) \
+  if (!(cond)) {                   \
+    ELOG(msg);                     \
+    return Rcpp::List::create();   \
   }
 
 ////////////////////////////////////////////////////////////////
 // mean ~ U * V' + xx_mean * theta
 // var ~ xx_var * theta
 // [[Rcpp::export(name="fqtl.mf", rng=false)]]
-Rcpp::List
-rcpp_train_mf(const Mat &yy,      // n x m
-              const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
-              const Mat &xx_var,  // n x q -> regression -> [n x q] [q x m]
-              const Rcpp::List &option_mf_list,
-              const Rcpp::List &option_reg_list) {
+Rcpp::List rcpp_train_mf(
+    const Mat &yy,       // n x m
+    const Mat &xx_mean,  // n x p -> regression -> [n x p] [p x m]
+    const Mat &xx_var,   // n x q -> regression -> [n x q] [q x m]
+    const Rcpp::List &option_mf_list, const Rcpp::List &option_reg_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -70,13 +69,12 @@ rcpp_train_mf(const Mat &yy,      // n x m
 // mean ~ U * V' + xx_mean * theta
 // var ~ xx_var * theta
 // [[Rcpp::export(name="fqtl.mf.cis", rng=false)]]
-Rcpp::List
-rcpp_train_mf_cis(const Mat &yy,      // n x m
-                  const Mat &xx_mean, // n x p -> regression -> [n x p] [p x m]
-                  const SpMat &adj_mean, // p x m adjacency
-                  const Mat &xx_var, // n x q -> regression -> [n x q] [q x m]
-                  const Rcpp::List &option_mf_list,
-                  const Rcpp::List &option_reg_list) {
+Rcpp::List rcpp_train_mf_cis(
+    const Mat &yy,          // n x m
+    const Mat &xx_mean,     // n x p -> regression -> [n x p] [p x m]
+    const SpMat &adj_mean,  // p x m adjacency
+    const Mat &xx_var,      // n x q -> regression -> [n x q] [q x m]
+    const Rcpp::List &option_mf_list, const Rcpp::List &option_reg_list) {
   //////////////////////
   // check dimensions //
   //////////////////////
@@ -135,11 +133,11 @@ rcpp_train_mf_cis(const Mat &yy,      // n x m
 // var ~ xx_var * theta
 // [[Rcpp::export(name="fqtl.mf.cis.aux", rng=false)]]
 Rcpp::List rcpp_train_mf_cis_aux(
-    const Mat &yy,             // n x m
-    const Mat &xx_sparse_mean, // n x p
-    const SpMat &adj_mean,     // p x m adjacency
-    const Mat &xx_dense_mean,  // additional covariates
-    const Mat &xx_var,         // n x q -> regression -> [n x q] [q x m]
+    const Mat &yy,              // n x m
+    const Mat &xx_sparse_mean,  // n x p
+    const SpMat &adj_mean,      // p x m adjacency
+    const Mat &xx_dense_mean,   // additional covariates
+    const Mat &xx_var,          // n x q -> regression -> [n x q] [q x m]
     const Rcpp::List &option_mf_list, const Rcpp::List &option_reg_list) {
   //////////////////////
   // check dimensions //
@@ -207,17 +205,16 @@ Rcpp::List rcpp_train_mf_cis_aux(
 // mean ~ X * U * V' + C * theta + theta * Ct
 // var  ~ Xv * theta
 // [[Rcpp::export(name="fqtl.regression.factored", rng=false)]]
-Rcpp::List rcpp_train_factored_regression(const Mat &yy,      // n x m
-                                          const Mat &xx_mean, // n x p -> p x m
-                                          const Mat &cc_mean, // n x p -> p x m
-                                          const Mat &xx_var,  // n x p
+Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
+                                          const Mat &xx_mean,  // n x p -> p x m
+                                          const Mat &cc_mean,  // n x p -> p x m
+                                          const Mat &xx_var,   // n x p
                                           const Rcpp::List &option_list) {
   ///////////////////
   // check options //
   ///////////////////
 
-  if (yy.cols() < 2)
-    WLOG("Factored regression with 1 output");
+  if (yy.cols() < 2) WLOG("Factored regression with 1 output");
 
   ASSERT_LIST_RET(yy.rows() == xx_mean.rows(),
                   "yy and xx_mean with different number of rows");
@@ -274,19 +271,18 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,      // n x m
 // mean ~ X * U * V' + C * theta
 // var  ~ Xv * theta
 // [[Rcpp::export(name="fqtl.regression.factored.cis", rng=false)]]
-Rcpp::List
-rcpp_train_factored_regression_cis(const Mat &yy,            // n x m
-                                   const Mat &xx_mean,       // n x p -> p x m
-                                   const Mat &cc_mean,       // n x p -> p x m
-                                   const SpMat &adj_cc_mean, // p x m
-                                   const Mat &xx_var,        // n x p
-                                   const Rcpp::List &option_list) {
+Rcpp::List rcpp_train_factored_regression_cis(
+    const Mat &yy,             // n x m
+    const Mat &xx_mean,        // n x p -> p x m
+    const Mat &cc_mean,        // n x p -> p x m
+    const SpMat &adj_cc_mean,  // p x m
+    const Mat &xx_var,         // n x p
+    const Rcpp::List &option_list) {
   ///////////////////
   // check options //
   ///////////////////
 
-  if (yy.cols() < 2)
-    WLOG("Factored regression with 1 output");
+  if (yy.cols() < 2) WLOG("Factored regression with 1 output");
 
   ASSERT_LIST_RET(yy.rows() == xx_mean.rows(),
                   "yy and xx_mean with different number of rows");
@@ -346,10 +342,10 @@ rcpp_train_factored_regression_cis(const Mat &yy,            // n x m
 // mean ~ X * theta + C * theta
 // var  ~ Xv * theta
 // [[Rcpp::export(name="fqtl.regression", rng=false)]]
-Rcpp::List rcpp_train_regression(const Mat &yy,      // n x m
-                                 const Mat &xx_mean, // n x p
-                                 const Mat &cc_mean, // n x p
-                                 const Mat &xx_var,  // n x p
+Rcpp::List rcpp_train_regression(const Mat &yy,       // n x m
+                                 const Mat &xx_mean,  // n x p
+                                 const Mat &cc_mean,  // n x p
+                                 const Mat &xx_var,   // n x p
                                  const Rcpp::List &option_list) {
   //////////////////////
   // check dimensions //
@@ -414,11 +410,11 @@ Rcpp::List rcpp_train_regression(const Mat &yy,      // n x m
 // mean ~ X * theta + C * theta
 // var  ~ Xv * theta
 // [[Rcpp::export(name="fqtl.regression.cis", rng=false)]]
-Rcpp::List rcpp_train_regression_cis(const Mat &yy,         // n x m
-                                     const Mat &xx_mean,    // n x p
-                                     const SpMat &adj_mean, // p x m
-                                     const Mat &cc_mean,    // n x p
-                                     const Mat &xx_var,     // n x p
+Rcpp::List rcpp_train_regression_cis(const Mat &yy,          // n x m
+                                     const Mat &xx_mean,     // n x p
+                                     const SpMat &adj_mean,  // p x m
+                                     const Mat &cc_mean,     // n x p
+                                     const Mat &xx_var,      // n x p
                                      const Rcpp::List &option_list) {
   //////////////////////
   // check dimensions //
@@ -485,12 +481,12 @@ Rcpp::List rcpp_train_regression_cis(const Mat &yy,         // n x m
 // mean ~ X * theta + C * theta
 // var  ~ Xv * theta
 // [[Rcpp::export(name="fqtl.regression.cis.cis", rng=false)]]
-Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy,            // n x m
-                                         const Mat &xx_mean,       // n x p
-                                         const SpMat &adj_xx_mean, // p x m
-                                         const Mat &cc_mean,       // n x p
-                                         const SpMat &adj_cc_mean, // p x m
-                                         const Mat &xx_var,        // n x p
+Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy,             // n x m
+                                         const Mat &xx_mean,        // n x p
+                                         const SpMat &adj_xx_mean,  // p x m
+                                         const Mat &cc_mean,        // n x p
+                                         const SpMat &adj_cc_mean,  // p x m
+                                         const Mat &xx_var,         // n x p
                                          const Rcpp::List &option_list) {
   //////////////////////
   // check dimensions //

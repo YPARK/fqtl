@@ -1,7 +1,8 @@
 #ifndef PARAM_SLAB_HH_
 #define PARAM_SLAB_HH_
 
-template <typename T, typename S> struct param_slab_t {
+template <typename T, typename S>
+struct param_slab_t {
   typedef T data_t;
   typedef typename T::Scalar scalar_t;
   typedef typename T::Index index_t;
@@ -11,15 +12,27 @@ template <typename T, typename S> struct param_slab_t {
 
   template <typename Opt>
   explicit param_slab_t(const index_t n1, const index_t n2, const Opt &opt)
-      : nrow(n1), ncol(n2), beta(nrow, ncol), gamma(nrow, ncol),
-        gamma_aux(nrow, ncol), theta_var(nrow, ncol), grad_beta(nrow, ncol),
-        grad_gamma_aux(nrow, ncol), r_m(opt.rate_m()), r_v(opt.rate_v()),
-        tau_lodds_lb(opt.tau_lodds_lb()), tau_lodds_ub(opt.tau_lodds_ub()),
-        adam_beta(r_m, r_v, nrow, ncol), adam_gamma_aux(r_m, r_v, nrow, ncol),
-        adam_tau_aux(r_m, r_v), resolve_prec_op(opt.gammax(), tau_aux),
+      : nrow(n1),
+        ncol(n2),
+        beta(nrow, ncol),
+        gamma(nrow, ncol),
+        gamma_aux(nrow, ncol),
+        theta_var(nrow, ncol),
+        grad_beta(nrow, ncol),
+        grad_gamma_aux(nrow, ncol),
+        r_m(opt.rate_m()),
+        r_v(opt.rate_v()),
+        tau_lodds_lb(opt.tau_lodds_lb()),
+        tau_lodds_ub(opt.tau_lodds_ub()),
+        adam_beta(r_m, r_v, nrow, ncol),
+        adam_gamma_aux(r_m, r_v, nrow, ncol),
+        adam_tau_aux(r_m, r_v),
+        resolve_prec_op(opt.gammax(), tau_aux),
         resolve_prec_prior_op(opt.gammax(), tau_aux),
-        grad_beta_eb_tau_op(tau_val), grad_gamma_eb_tau_op(tau_val),
-        grad_gamma_chain_op(tau_aux), grad_prior_tau_aux_op(tau_val, tau_aux) {}
+        grad_beta_eb_tau_op(tau_val),
+        grad_gamma_eb_tau_op(tau_val),
+        grad_gamma_chain_op(tau_aux),
+        grad_prior_tau_aux_op(tau_val, tau_aux) {}
 
   const index_t rows() const { return nrow; }
   const index_t cols() const { return ncol; }
@@ -146,7 +159,7 @@ template <typename T, typename S> struct param_slab_t {
 
   } grad_prior_tau_aux_op;
 
-  static constexpr scalar_t large_exp_value = 20.0; // exp(20) is too big
+  static constexpr scalar_t large_exp_value = 20.0;  // exp(20) is too big
   static constexpr scalar_t one_val = 1.0;
   static constexpr scalar_t two_val = 2.0;
 };
@@ -222,10 +235,8 @@ void impl_resolve_param(Parameter &P, const tag_param_slab) {
 
 template <typename Parameter>
 void impl_resolve_hyperparam(Parameter &P, const tag_param_slab) {
-  if (P.tau_aux > P.tau_lodds_ub)
-    P.tau_aux = P.tau_lodds_ub;
-  if (P.tau_aux < P.tau_lodds_lb)
-    P.tau_aux = P.tau_lodds_lb;
+  if (P.tau_aux > P.tau_lodds_ub) P.tau_aux = P.tau_lodds_ub;
+  if (P.tau_aux < P.tau_lodds_lb) P.tau_aux = P.tau_lodds_lb;
   P.tau_val = P.resolve_prec_prior_op();
 }
 

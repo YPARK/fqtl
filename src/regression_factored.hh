@@ -33,10 +33,24 @@ struct factored_regression_t {
 
   explicit factored_regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
                                  ParamLeft &thetaL, ParamRight &thetaR)
-      : n(xx.rows()), p(xx.cols()), m(yy.cols()), k(thetaL.cols()), NobsL(p, k),
-        NobsR(m, k), ThetaL(thetaL), ThetaR(thetaR), thetaLsq(p, k),
-        thetaRsq(m, k), X(n, p), Xsq(n, p), G1L(p, k), G2L(p, k), G1R(m, k),
-        G2R(m, k), temp_nk(n, k), Eta(make_gaus_repr(yy)) {
+      : n(xx.rows()),
+        p(xx.cols()),
+        m(yy.cols()),
+        k(thetaL.cols()),
+        NobsL(p, k),
+        NobsR(m, k),
+        ThetaL(thetaL),
+        ThetaR(thetaR),
+        thetaLsq(p, k),
+        thetaRsq(m, k),
+        X(n, p),
+        Xsq(n, p),
+        G1L(p, k),
+        G2L(p, k),
+        G1R(m, k),
+        G2R(m, k),
+        temp_nk(n, k),
+        Eta(make_gaus_repr(yy)) {
 #ifdef DEBUG
     check_dim(ThetaL, p, k, "ThetaL in factored_regression_t");
     check_dim(ThetaR, m, k, "ThetaR in factored_regression_t");
@@ -75,24 +89,25 @@ struct factored_regression_t {
   const Index m;
   const Index k;
 
-  ParamLeftMatrix NobsL;  // p x k
-  ParamRightMatrix NobsR; // m x k
-  ParamLeft &ThetaL;      // p x k
-  ParamRight &ThetaR;     // m x k
+  ParamLeftMatrix NobsL;   // p x k
+  ParamRightMatrix NobsR;  // m x k
+  ParamLeft &ThetaL;       // p x k
+  ParamRight &ThetaR;      // m x k
 
-  ParamLeftMatrix thetaLsq;  // p x k
-  ParamRightMatrix thetaRsq; // m x k
+  ParamLeftMatrix thetaLsq;   // p x k
+  ParamRightMatrix thetaRsq;  // m x k
 
-  ReprMatrix X;         // n x p
-  ReprMatrix Xsq;       // n x p
-  ParamLeftMatrix G1L;  // p x k
-  ParamLeftMatrix G2L;  // p x k
-  ParamRightMatrix G1R; // m x k
-  ParamRightMatrix G2R; // m x k
-  ReprMatrix temp_nk;   // n x k
-  Repr Eta;             // n x m
+  ReprMatrix X;          // n x p
+  ReprMatrix Xsq;        // n x p
+  ParamLeftMatrix G1L;   // p x k
+  ParamLeftMatrix G2L;   // p x k
+  ParamRightMatrix G1R;  // m x k
+  ParamRightMatrix G2R;  // m x k
+  ReprMatrix temp_nk;    // n x k
+  Repr Eta;              // n x m
 
-  template <typename RNG> inline const ReprMatrix &sample(RNG &rng) {
+  template <typename RNG>
+  inline const ReprMatrix &sample(RNG &rng) {
     return sample_repr(Eta, rng);
   }
 
@@ -176,7 +191,8 @@ struct factored_regression_t {
     eval_param_sgd(ThetaR, G1R, G2R, NobsR);
   }
 
-  template <typename RNG> inline void jitter(const Scalar sd, RNG &rng) {
+  template <typename RNG>
+  inline void jitter(const Scalar sd, RNG &rng) {
     perturb_param(ThetaL, sd, rng);
     perturb_param(ThetaR, sd, rng);
     resolve_param(ThetaL);
@@ -185,7 +201,6 @@ struct factored_regression_t {
   }
 
   inline void init_by_svd(const ReprMatrix &yy, const Scalar sd) {
-
     ReprMatrix Y;
     remove_missing(yy, Y);
     ReprMatrix XtY = X.transpose() * Y;
@@ -196,7 +211,7 @@ struct factored_regression_t {
     ParamLeftMatrix left = svd.matrixU() * sd;
     ParamRightMatrix right = svd.matrixV() * sd;
 
-    if(left.cols() >= k){
+    if (left.cols() >= k) {
       ThetaL.beta = left.leftCols(k);
       ThetaR.beta = right.leftCols(k);
     } else {
