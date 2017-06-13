@@ -52,10 +52,24 @@ Rcpp::List rcpp_train_mf(
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
+
+  // Pre-train : Y ~ X model.  This will help convergence of
+  // high-dimensional X.
+
+  if (opt_mf.mf_pretrain() || n < xx_mean.cols()) {
+    auto llik_pretrain = impl_fit_eta(model, opt_reg, std::make_tuple(mean_eta),
+                                      std::make_tuple(var_eta));
+    TLOG("Finished pre-training of regression");
+
+    auto llik_clamped =
+        impl_fit_eta(model, opt_mf, std::make_tuple(mf_eta),
+                     std::make_tuple(var_eta), std::make_tuple(mean_eta));
+    TLOG("Finished pre-training of mf");
+  }
+
   auto llik_trace =
       impl_fit_eta(model, opt_mf, std::make_tuple(mf_eta, mean_eta),
                    std::make_tuple(var_eta));
-
   TLOG("Finished MF");
 
   return Rcpp::List::create(Rcpp::_["U"] = param_rcpp_list(mf_theta_u),
@@ -115,6 +129,21 @@ Rcpp::List rcpp_train_mf_cis(
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
+
+  // Pre-train : Y ~ X model.  This will help convergence of
+  // high-dimensional X.
+
+  if (opt_mf.mf_pretrain() || n < xx_mean.cols()) {
+    auto llik_pretrain = impl_fit_eta(model, opt_reg, std::make_tuple(mean_eta),
+                                      std::make_tuple(var_eta));
+    TLOG("Finished pre-training");
+
+    auto llik_clamped =
+        impl_fit_eta(model, opt_mf, std::make_tuple(mf_eta),
+                     std::make_tuple(var_eta), std::make_tuple(mean_eta));
+    TLOG("Finished pre-training of mf");
+  }
+
   auto llik_trace =
       impl_fit_eta(model, opt_mf, std::make_tuple(mf_eta, mean_eta),
                    std::make_tuple(var_eta));
@@ -186,6 +215,23 @@ Rcpp::List rcpp_train_mf_cis_aux(
 
   auto model_ptr = make_model<m_gaussian_tag>(yy);
   auto &model = *model_ptr.get();
+
+  // Pre-train : Y ~ X model.  This will help convergence of
+  // high-dimensional X.
+
+  if (opt_mf.mf_pretrain() || n < xx_sparse_mean.cols() ||
+      n < xx_dense_mean.cols()) {
+    auto llik_pretrain = impl_fit_eta(
+        model, opt_reg, std::make_tuple(mean_sparse_eta, mean_dense_eta),
+        std::make_tuple(var_eta));
+    TLOG("Finished pre-training");
+
+    auto llik_clamped = impl_fit_eta(
+        model, opt_mf, std::make_tuple(mf_eta), std::make_tuple(var_eta),
+        std::make_tuple(mean_sparse_eta, mean_dense_eta));
+    TLOG("Finished pre-training of mf");
+  }
+
   auto llik_trace = impl_fit_eta(
       model, opt_mf, std::make_tuple(mf_eta, mean_sparse_eta, mean_dense_eta),
       std::make_tuple(var_eta));

@@ -134,6 +134,7 @@ struct factorization_t {
                                   Eigen::ComputeThinU | Eigen::ComputeThinV);
     DataMat uu = svd.matrixU() * sd;
     DataMat vv = svd.matrixV() * sd;
+    vv = vv * svd.singularValues().asDiagonal();
     U.beta = uu.leftCols(k);
     V.beta = vv.leftCols(k);
     resolve_param(U);

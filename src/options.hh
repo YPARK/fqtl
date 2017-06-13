@@ -28,6 +28,7 @@ struct options_t {
     OUT_RESID = true;
     RSEED = 13;
     MF_SVD_INIT = true;
+    MF_PRETRAIN = true;
   }
 
   const unsigned int vbiter() const { return VBITER; };
@@ -52,6 +53,7 @@ struct options_t {
   const bool mf_svd_init() const { return MF_SVD_INIT; }
   const std::string model_name() const { return MODEL_NAME; }
   const unsigned int rseed() const { return RSEED; };
+  const bool mf_pretrain() const { return MF_PRETRAIN; }
 
   unsigned int VBITER;
   unsigned int MINITER;
@@ -76,6 +78,7 @@ struct options_t {
   bool VERBOSE;
   bool OUT_RESID;
   bool MF_SVD_INIT;
+  bool MF_PRETRAIN;
   std::string MODEL_NAME;
   unsigned int RSEED;
 };

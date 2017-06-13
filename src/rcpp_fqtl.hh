@@ -119,6 +119,10 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
     opt.JITTER = Rcpp::as<Scalar>(_list["jitter"]);
   if (_list.containsElementNamed("svd.init"))
     opt.MF_SVD_INIT = Rcpp::as<bool>(_list["svd.init"]);
+
+  if (_list.containsElementNamed("mf.pretrain"))
+    opt.MF_PRETRAIN = Rcpp::as<bool>(_list["mf.pretrain"]);
+
   if (_list.containsElementNamed("vbiter"))
     opt.VBITER = Rcpp::as<Index>(_list["vbiter"]);
 

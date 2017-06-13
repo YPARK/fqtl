@@ -77,7 +77,7 @@ fqtl.mf(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
 require(fqtl)
 require(Matrix)
 
-n <- 150
+n <- 100
 m <- 100
 k <- 3
 p <- 200
@@ -92,11 +92,14 @@ y.resid <- X[,1:p.true] \%*\% theta.true
 y <- u \%*\% t(v) + 0.5 * matrix(rnorm(n * m), n, m)
 y[,1] <- y[,1] + y.resid
 
+y <- scale(y)
+
 x.v <- matrix(1, n, 1)
 xx <- as.matrix(cbind(X, 1))
 
-mf.opt <- list(tol=1e-8, rate=0.01, pi.ub=0, pi.lb=-2, svd.init = TRUE, jitter = 1, vbiter = 2000, gammax=1000)
-reg.opt <- list(pi.ub=-2, pi.lb=-4, gammax=1000)
+mf.opt <- list(tol=1e-8, rate=0.01, pi.ub=0, pi.lb=-2, svd.init = TRUE,
+jitter = 1.0, vbiter = 1000, gammax=1e4, mf.pretrain = TRUE)
+reg.opt <- list(pi.ub=-2, pi.lb=-4, gammax=1e4, vbiter = 1000)
 
 ## full t(xx) * y adjacency matrix
 mf.out <- fqtl.mf(y, x.mean = xx, x.var = x.v, options.mf = mf.opt)
@@ -126,6 +129,5 @@ mf.out <- fqtl.mf(y, x.mean = xx, x.var = x.v, x.mean.loc = 1:(p+1),
 image(Matrix(mf.out$U$theta), main = 'U')
 image(Matrix(mf.out$V$theta), main = 'V')
 image(Matrix(mf.out$mean.sparse$theta[1:20,]))
-image(Matrix(mf.out$mean.dense$theta))
 }
 \author{Yongjin Park}
