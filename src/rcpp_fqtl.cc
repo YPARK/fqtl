@@ -57,8 +57,9 @@ Rcpp::List rcpp_train_mf(
   // high-dimensional X.
 
   if (opt_mf.mf_pretrain() || n < xx_mean.cols()) {
-    auto llik_pretrain = impl_fit_eta(model, opt_reg, std::make_tuple(mean_eta),
-                                      std::make_tuple(var_eta));
+    auto llik_pretrain =
+        impl_fit_eta(model, opt_reg, std::make_tuple(mean_eta),
+                     std::make_tuple(var_eta), std::make_tuple(mf_eta));
     TLOG("Finished pre-training of regression");
 
     auto llik_clamped =
@@ -134,8 +135,9 @@ Rcpp::List rcpp_train_mf_cis(
   // high-dimensional X.
 
   if (opt_mf.mf_pretrain() || n < xx_mean.cols()) {
-    auto llik_pretrain = impl_fit_eta(model, opt_reg, std::make_tuple(mean_eta),
-                                      std::make_tuple(var_eta));
+    auto llik_pretrain =
+        impl_fit_eta(model, opt_reg, std::make_tuple(mean_eta),
+                     std::make_tuple(var_eta), std::make_tuple(mf_eta));
     TLOG("Finished pre-training");
 
     auto llik_clamped =
@@ -223,7 +225,7 @@ Rcpp::List rcpp_train_mf_cis_aux(
       n < xx_dense_mean.cols()) {
     auto llik_pretrain = impl_fit_eta(
         model, opt_reg, std::make_tuple(mean_sparse_eta, mean_dense_eta),
-        std::make_tuple(var_eta));
+        std::make_tuple(var_eta), std::make_tuple(mf_eta));
     TLOG("Finished pre-training");
 
     auto llik_clamped = impl_fit_eta(
