@@ -135,8 +135,12 @@ struct factorization_t {
     DataMat uu = svd.matrixU() * sd;
     DataMat vv = svd.matrixV() * sd;
     vv = vv * svd.singularValues().asDiagonal();
-    U.beta = uu.leftCols(k);
-    V.beta = vv.leftCols(k);
+
+    U.beta.setZero();
+    V.beta.setZero();
+    U.beta.leftCols(k) = uu.leftCols(k);
+    V.beta.leftCols(k) = vv.leftCols(k);
+      
     resolve_param(U);
     resolve_param(V);
     resolve();

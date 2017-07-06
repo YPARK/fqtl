@@ -203,24 +203,18 @@ struct factored_regression_t {
   inline void init_by_svd(const ReprMatrix &yy, const Scalar sd) {
     ReprMatrix Y;
     remove_missing(yy, Y);
-    ReprMatrix XtY = X.transpose() * Y;
+    ReprMatrix XtY = X.transpose() * Y / static_cast<Scalar>(n);
 
     Eigen::JacobiSVD<ReprMatrix> svd(XtY,
                                      Eigen::ComputeThinU | Eigen::ComputeThinV);
 
     ParamLeftMatrix left = svd.matrixU() * sd;
     ParamRightMatrix right = svd.matrixV() * sd;
-    // right = right * svd.singularValues().asDiagonal();
 
-    if (left.cols() >= k) {
-      ThetaL.beta = left.leftCols(k);
-      ThetaR.beta = right.leftCols(k);
-    } else {
-      ThetaL.beta.setZero();
-      ThetaR.beta.setZero();
-      ThetaL.beta.leftCols(k) = left.leftCols(k);
-      ThetaR.beta.leftCols(k) = right.leftCols(k);
-    }
+    ThetaL.beta.setZero();
+    ThetaR.beta.setZero();
+    ThetaL.beta.leftCols(k) = left.leftCols(k);
+    ThetaR.beta.leftCols(k) = right.leftCols(k);
 
     resolve_param(ThetaL);
     resolve_param(ThetaR);
