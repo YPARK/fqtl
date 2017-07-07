@@ -211,6 +211,8 @@ struct factored_regression_t {
     ParamLeftMatrix left = svd.matrixU() * sd;
     ParamRightMatrix right = svd.matrixV() * sd;
 
+    right = right * svd.singularValues().asDiagonal();
+
     ThetaL.beta.setZero();
     ThetaR.beta.setZero();
     ThetaL.beta.leftCols(k) = left.leftCols(k);
