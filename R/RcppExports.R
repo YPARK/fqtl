@@ -15,7 +15,8 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
 
     ## dense y ~ x.mean
     if(is.null(y.loc) || is.null(x.mean.loc)){
-        return(.Call('fqtl_rcpp_train_mf', y, x.mean, x.var, options.mf, options.reg,
+        return(.Call('fqtl_rcpp_train_mf', y, x.mean, x.var,
+                     options.mf, options.reg,
                      PACKAGE = 'fqtl'))
     }
 
@@ -44,7 +45,8 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
         return(NULL)
     }
 
-    x.adj.mean <- Matrix::sparseMatrix(i = cis.x.adj$d1, j = cis.x.adj$d2, x = 1, dims = c(p, m))
+    x.adj.mean <- Matrix::sparseMatrix(i = cis.x.adj$d1, j = cis.x.adj$d2,
+                                       x = 1, dims = c(p, m))
 
     ## without additional c.mean
     if(is.null(c.mean)){
@@ -54,15 +56,17 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
 
     ## additional (dense) c.mean
     stopifnot(dim(c.mean)[1] == n)
-    return(.Call('fqtl_rcpp_train_mf_cis_aux', y, x.mean, x.adj.mean, c.mean, x.var,
+    return(.Call('fqtl_rcpp_train_mf_cis_aux',
+                 y, x.mean, x.adj.mean, c.mean, x.var,                 
                  options.mf, options.reg, PACKAGE = 'fqtl'))
 }
 
 fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
                          y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL, c.mean.loc = NULL,
-                         cis.dist = 5e5, options = list(vbiter=1000, tol=1e-8, gammax=100,
-                                             rate=0.1, decay=-0.1, pi.ub=-1, pi.lb=-4,
-                                             tau.lb=-10, tau.ub=-4, verbose=TRUE)) {
+                         cis.dist = 5e5,
+                         options = list(vbiter=1000, tol=1e-8, gammax=100,
+                             rate=0.1, decay=-0.1, pi.ub=-1, pi.lb=-4,
+                             tau.lb=-10, tau.ub=-4, verbose=TRUE)) {
 
     n <- dim(y)[1]
     m <- dim(y)[2]

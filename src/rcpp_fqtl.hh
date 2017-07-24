@@ -13,6 +13,7 @@
 #include "factorization.hh"
 #include "gaussian.hh"
 #include "gaussian_voom.hh"
+#include "nb.hh"
 #include "options.hh"
 #include "parameters.hh"
 #include "rcpp_util.hh"
@@ -25,13 +26,145 @@
 #ifndef RCPP_FQT_HH_
 #define RCPP_FQT_HH_
 
+////////////////////
+// Package export //
+////////////////////
+
+// Factorization routines
+
+RcppExport SEXP fqtl_rcpp_train_mf(SEXP y, SEXP x_m, SEXP x_v, SEXP opt_mf,
+                                   SEXP opt_reg);
+
+RcppExport SEXP fqtl_rcpp_train_mf_cis(SEXP y, SEXP x_m, SEXP a_m, SEXP x_v,
+                                       SEXP opt_mf, SEXP opt_reg);
+
+RcppExport SEXP fqtl_rcpp_train_mf_cis_aux(SEXP y, SEXP x_m, SEXP a_m, SEXP c_m,
+                                           SEXP x_v, SEXP opt_mf, SEXP opt_reg);
+
+// Regeression routines
+
+RcppExport SEXP fqtl_rcpp_train_reg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
+                                    SEXP opt);
+
+RcppExport SEXP fqtl_rcpp_train_reg_cis(SEXP y, SEXP x_m, SEXP a_x_m, SEXP c_m,
+                                        SEXP x_v, SEXP opt);
+
+RcppExport SEXP fqtl_rcpp_train_reg_cis_cis(SEXP y, SEXP x_m, SEXP a_x_m,
+                                            SEXP c_m, SEXP a_c_m, SEXP x_v,
+                                            SEXP opt);
+
+// Factored regeression routines
+
+RcppExport SEXP fqtl_rcpp_train_freg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
+                                     SEXP opt);
+
+RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
+                                         SEXP x_v, SEXP opt);
+
+RcppExport SEXP fqtl_adj(SEXP d1, SEXP d2_start, SEXP d2_end, SEXP cis);
+
+////////////////////////////
+// Actual implementations //
+////////////////////////////
+
 using Mat = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
 using SpMat = Eigen::SparseMatrix<float, Eigen::ColMajor>;
 using Scalar = Mat::Scalar;
 using Index = Mat::Index;
 
+// Factorization routines
+template <typename ModelTag>
+Rcpp::List rcpp_train_mf(const Mat &yy, const Mat &xx_mean, const Mat &xx_var,
+                         const Rcpp::List &option_mf_list,
+                         const Rcpp::List &option_reg_list);
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_mf_cis(const Mat &yy, const Mat &xx_mean,
+                             const SpMat &adj_mean, const Mat &xx_var,
+                             const Rcpp::List &option_mf_list,
+                             const Rcpp::List &option_reg_list);
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_mf_cis_aux(const Mat &yy, const Mat &xx_sparse_mean,
+                                 const SpMat &adj_mean,
+                                 const Mat &xx_dense_mean, const Mat &xx_var,
+                                 const Rcpp::List &option_mf_list,
+                                 const Rcpp::List &option_reg_list);
+
+// Regeression routines
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_regression(const Mat &yy, const Mat &xx_mean,
+                                 const Mat &cc_mean, const Mat &xx_var,
+                                 const Rcpp::List &option_list);
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_regression_cis(const Mat &yy, const Mat &xx_mean,
+                                     const SpMat &adj_mean, const Mat &cc_mean,
+                                     const Mat &xx_var,
+                                     const Rcpp::List &option_list);
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy, const Mat &xx_mean,
+                                         const SpMat &adj_xx_mean,
+                                         const Mat &cc_mean,
+                                         const SpMat &adj_cc_mean,
+                                         const Mat &xx_var,
+                                         const Rcpp::List &option_list);
+
+// Factored regeression routines
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_factored_regression(const Mat &yy, const Mat &xx_mean,
+                                          const Mat &cc_mean, const Mat &xx_var,
+                                          const Rcpp::List &option_list);
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_factored_regression_cis(const Mat &yy, const Mat &xx_mean,
+                                              const Mat &cc_mean,
+                                              const SpMat &adj_cc_mean,
+                                              const Mat &xx_var,
+                                              const Rcpp::List &option_list);
+
+////////////////////////////////////////////////////////////////
+
+#define ASSERT_LIST_RET(cond, msg) \
+  if (!(cond)) {                   \
+    ELOG(msg);                     \
+    return Rcpp::List::create();   \
+  }
+
+void set_options_from_list(const Rcpp::List &_list, options_t &opt);
+
+template <typename Derived, typename OtherDerived>
+void summarize_llik(const Eigen::MatrixBase<Derived> &llik,
+                    Eigen::MatrixBase<OtherDerived> &llik_trace);
+
+Rcpp::List rcpp_fqtl_adj_list(const Rcpp::NumericVector &d1_loc,
+                              const Rcpp::NumericVector &d2_start_loc,
+                              const Rcpp::NumericVector &d2_end_loc,
+                              const double cis_window);
+
+template <typename T>
+Rcpp::List param_rcpp_list(const T &param);
+
+template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_spike_slab);
+
+template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_col_spike_slab);
+
+template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_col_slab);
+
+template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab);
+
+////////////////////////////////////////////////////////////////
+
 struct m_gaussian_tag {};
 struct m_gaussian_voom_tag {};
+struct m_nb_tag {};
 
 template <typename Mat, typename ModelT>
 struct impl_model_maker_t;
@@ -49,6 +182,14 @@ struct impl_model_maker_t<Mat, m_gaussian_tag> {
     TLOG("Gaussian model : Vmax " << vmax << ", Vmin " << vmin);
     return std::make_shared<model_type>(Y, typename model_type::Vmin_t(vmin),
                                         typename model_type::Vmax_t(vmax));
+  }
+};
+
+template <typename Mat>
+struct impl_model_maker_t<Mat, m_nb_tag> {
+  using model_type = nb_model_t<Mat>;
+  std::shared_ptr<model_type> operator()(const Mat &Y) {
+    return std::make_shared<model_type>(Y);
   }
 };
 
@@ -74,139 +215,6 @@ auto make_model(const Mat &Y) {
   return maker(Y);
 }
 
-////////////////////////////////////////////////////////////////
-template <typename Derived, typename OtherDerived>
-void summarize_llik(const Eigen::MatrixBase<Derived> &llik,
-                    Eigen::MatrixBase<OtherDerived> &llik_trace) {
-  llik_trace.resize(llik.rows(), 1);
-  llik_trace.derived() = llik.rowwise().mean();
-}
-
-////////////////////////////////////////////////////////////////
-void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
-  if (_list.containsElementNamed("tau.lb"))
-    opt.TAU_LODDS_LB = Rcpp::as<Scalar>(_list["tau.lb"]);
-  if (_list.containsElementNamed("tau.ub"))
-    opt.TAU_LODDS_UB = Rcpp::as<Scalar>(_list["tau.ub"]);
-  if (_list.containsElementNamed("pi.lb"))
-    opt.PI_LODDS_LB = Rcpp::as<Scalar>(_list["pi.lb"]);
-  if (_list.containsElementNamed("pi.ub"))
-    opt.PI_LODDS_UB = Rcpp::as<Scalar>(_list["pi.ub"]);
-  if (_list.containsElementNamed("tol"))
-    opt.VBTOL = Rcpp::as<Scalar>(_list["tol"]);
-  if (_list.containsElementNamed("vb.tol"))
-    opt.VBTOL = Rcpp::as<Scalar>(_list["vb.tol"]);
-  if (_list.containsElementNamed("k")) opt.K = Rcpp::as<Index>(_list["k"]);
-  if (_list.containsElementNamed("K")) opt.K = Rcpp::as<Index>(_list["K"]);
-  if (_list.containsElementNamed("gammax"))
-    opt.GAMMAX = Rcpp::as<Scalar>(_list["gammax"]);
-  if (_list.containsElementNamed("decay"))
-    opt.DECAY = Rcpp::as<Scalar>(_list["decay"]);
-  if (_list.containsElementNamed("rate"))
-    opt.RATE0 = Rcpp::as<Scalar>(_list["rate"]);
-  if (_list.containsElementNamed("nsample")) {
-    opt.NSAMPLE = Rcpp::as<Index>(_list["nsample"]);
-    if (opt.nsample() < 3)
-      WLOG("Too small random samples in SGD : " << opt.nsample());
-  }
-  if (_list.containsElementNamed("adam.rate.m"))
-    opt.RATE_M = Rcpp::as<Scalar>(_list["adam.rate.m"]);
-  if (_list.containsElementNamed("adam.rate.v"))
-    opt.RATE_V = Rcpp::as<Scalar>(_list["adam.rate.v"]);
-  if (_list.containsElementNamed("rseed"))
-    opt.RSEED = Rcpp::as<Index>(_list["rseed"]);
-  if (_list.containsElementNamed("jitter"))
-    opt.JITTER = Rcpp::as<Scalar>(_list["jitter"]);
-  if (_list.containsElementNamed("svd.init"))
-    opt.MF_SVD_INIT = Rcpp::as<bool>(_list["svd.init"]);
-
-  if (_list.containsElementNamed("mf.pretrain"))
-    opt.MF_PRETRAIN = Rcpp::as<bool>(_list["mf.pretrain"]);
-
-  if (_list.containsElementNamed("vbiter"))
-    opt.VBITER = Rcpp::as<Index>(_list["vbiter"]);
-
-  if (_list.containsElementNamed("print.interv"))
-    opt.INTERV = Rcpp::as<Index>(_list["print.interv"]);
-
-  if (_list.containsElementNamed("num.threads"))
-    opt.NTHREAD = Rcpp::as<Index>(_list["num.threads"]);
-
-  if (_list.containsElementNamed("nthreads"))
-    opt.NTHREAD = Rcpp::as<Index>(_list["nthreads"]);
-
-  if (_list.containsElementNamed("verbose"))
-    opt.VERBOSE = Rcpp::as<bool>(_list["verbose"]);
-  if (_list.containsElementNamed("out.residual"))
-    opt.OUT_RESID = Rcpp::as<bool>(_list["out.residual"]);
-  // if (_list.containsElementNamed("model"))
-  //   opt.MODEL_NAME = Rcpp::as<std::string>(_list["model"]);
-}
-
-////////////////////////////////////////////////////////////////
-Rcpp::List rcpp_fqtl_adj_list(const Rcpp::NumericVector &d1_loc,
-                              const Rcpp::NumericVector &d2_start_loc,
-                              const Rcpp::NumericVector &d2_end_loc,
-                              const double cis_window) {
-  const auto n1 = d1_loc.size();
-  const auto n2 = d2_start_loc.size();
-
-  if (d2_start_loc.size() != d2_end_loc.size()) {
-    ELOG("start and end location vectors have different size");
-    return Rcpp::List::create();
-  }
-
-  std::vector<int> left;
-  std::vector<int> right;
-
-  for (auto i = 0u; i < n1; ++i) {
-    const double d1 = d1_loc.at(i);
-    for (auto j = 0u; j < n2; ++j) {
-      const double d2_start = d2_start_loc[j];
-      const double d2_end = d2_end_loc[j];
-      if (d2_start > d2_end) continue;
-      if (d1 >= (d2_start - cis_window) && d1 <= (d2_end + cis_window)) {
-        left.push_back(i + 1);
-        right.push_back(j + 1);
-      }
-    }
-  }
-
-  return Rcpp::List::create(Rcpp::_["d1"] = Rcpp::wrap(left),
-                            Rcpp::_["d2"] = Rcpp::wrap(right));
-}
-
-////////////////////////////////////////////////////////////////
-template <typename T>
-Rcpp::List param_rcpp_list(const T &param) {
-  return impl_param_rcpp_list(param, sgd_tag<T>());
-}
-
-template <typename T>
-Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_spike_slab) {
-  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
-                            Rcpp::_["theta.var"] = var_param(param),
-                            Rcpp::_["lodds"] = log_odds_param(param));
-}
-
-template <typename T>
-Rcpp::List impl_param_rcpp_list(const T &param,
-                                const tag_param_col_spike_slab) {
-  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
-                            Rcpp::_["theta.var"] = var_param(param),
-                            Rcpp::_["lodds"] = log_odds_param(param));
-}
-
-template <typename T>
-Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_col_slab) {
-  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
-                            Rcpp::_["theta.var"] = var_param(param));
-}
-
-template <typename T>
-Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab) {
-  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
-                            Rcpp::_["theta.var"] = var_param(param));
-}
+const std::string get_model_name(const Rcpp::List &_list);
 
 #endif

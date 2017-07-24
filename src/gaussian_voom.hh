@@ -3,7 +3,7 @@
 
 ////////////////////////////////////////////////////////////////
 // E[Y] = eta_mean
-// V[Y] = exp(-eta_mean - var[eta_mean]/2) + g(eta_var)
+// V[Y] = exp(-eta_mean) + g(eta_var)
 ////////////////////////////////////////////////////////////////
 template <typename T>
 struct gaussian_voom_model_t {
@@ -35,8 +35,7 @@ struct gaussian_voom_model_t {
         mean_mat(n, m),
         var_mat(n, m),
         evidence_mat(n, m),
-        var_op(Vmin.val, Vmax.val),
-        col_var_op(mean_mat) {
+        var_op(Vmin.val, Vmax.val) {
     is_obs_op<T> obs_op;
     evidence_mat = yy.unaryExpr(obs_op);
     remove_missing(yy, Y_safe);
@@ -90,20 +89,12 @@ struct gaussian_voom_model_t {
     initialize(yy, var_mat, 0.0);
   }
 
-  // var[Y] = exp(-eta_mean - var[eta_mean]/2) + g(eta_var)
+  // var[Y] = exp(-eta_mean) + g(eta_var)
   // llik = -0.5 * var[Y] - 0.5 * (y - mu)^2 / var[Y]
   template <typename M1, typename M2>
   const T& _eval(const M1& eta_mean, const M2& eta_var) {
-    mean_mat = eta_mean;                  // E[Y] = eta_mean
-    const T& obs_var_vec = col_var_op();  // ncol x 1
-
-    // V[i,g] = phi(eta_var[i,g]) + exp(-0.5 var(mean[,g]) - mean[i,g])
-    for (Index g = 0; g < m; ++g) {
-      const Scalar v0 = obs_var_vec(g);  // v0 = 0 is okay
-      var_mat.col(g).setConstant(-v0 * half_val);
-    }
-    var_mat -= mean_mat;
-    var_mat = var_mat.unaryExpr(exp_op);
+    mean_mat = eta_mean;
+    var_mat = (-mean_mat).unaryExpr(exp_op);
     var_mat += eta_var.unaryExpr(var_op);
 
     llik_mat =
@@ -120,15 +111,8 @@ struct gaussian_voom_model_t {
     };
     mean_mat = eta_mean;
 
-    const T& obs_var_vec = col_var_op();  // ncol x 1
-
-    // V[i,g] = phi(eta_var[i,g]) + exp(-0.5 var(mean[,g]) - mean[i,g])
-    for (Index g = 0; g < m; ++g) {
-      const Scalar v0 = obs_var_vec(g);  // v0 = 0 is okay
-      var_mat.col(g).setConstant(-v0 * half_val);
-    }
-    var_mat -= mean_mat;
-    var_mat = var_mat.unaryExpr(exp_op);
+    // V[i,g] = phi(eta_var[i,g]) + exp(- mean[i,g])
+    var_mat = (-mean_mat).unaryExpr(exp_op);
     var_mat += eta_var.unaryExpr(var_op);
 
     sampled_mat = eta_mean.binaryExpr(var_mat, rnorm);
@@ -172,8 +156,6 @@ struct gaussian_voom_model_t {
     std::mt19937 rng;
     std::normal_distribution<Scalar> distrib;
   } rnorm_op;
-
-  column_var_op_t<T> col_var_op;
 
   static constexpr Scalar small_val = 1e-8;
   static constexpr Scalar half_val = 0.5;
