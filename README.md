@@ -47,18 +47,18 @@ Here we stabilized error variance, restricting on [`Vmin`, `Vmax`], with `Vmax =
 
 ```
 b[y] = exp(- eta1)
-E[y] = exp(X theta1 - ln phi)
-V[y] = E[y] * (1 + E[y] * phi)
+E[y] = exp(X theta1 + ln (1 + 1/phi))
+V[y] = E[y] * (1 + E[y] / (1 + 1/phi))
 
-L[y] = ln Gam(y + 1/phi) - ln Gam(1/phi)
+L[y] = ln Gam(y + 1/phi + 1) - ln Gam(1/phi + 1)
        - y * ln(1 + exp(- eta1))
-       - (1/phi) * ln(1 + exp(eta1))
+       - (1/phi + 1) * ln(1 + exp(eta1))
 ```
 
 Like Gaussian model, we could bound variance model `V[y] < observed V[y]`.
 Probably most loosened model fit to the data is sample mean `Y.bar` where there is no association of covariates.
 
 ```
-worst_variance = Ybar * (1 + Ybar * phi) < Vobs
+worst_variance = Ybar * (1 + Ybar /(1 + 1/phi)) < Ybar * (1 + Ybar * phi) < Vobs
 phi_max = (Vobs / Ybar - 1) / Ybar
 ```

@@ -98,9 +98,7 @@ struct nb_model_t {
     };
 
     auto phi_min_op = [](const auto& _phi_max) {
-      Scalar ret = _phi_max * 1e-2;
-      if (ret < one_val) return one_val;
-      return one_val;
+      return static_cast<const Scalar>(_phi_max * 1e-2);
     };
 
     phi_max = y_var.binaryExpr(y_mean, phi_max_op);
