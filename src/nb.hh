@@ -82,7 +82,7 @@ struct nb_model_t {
     T y_num = onesN * evidence_mat;
 
     auto div_op = [](const Scalar& _d, const Scalar& _n) {
-      return static_cast<const Scalar>(_d / (_n + 1e-4));
+      return static_cast<const Scalar>(_d / (_n + 1e-2));
     };
 
     T y_mean = (onesN * Y).binaryExpr(y_num, div_op);  // 1 x m
@@ -91,12 +91,20 @@ struct nb_model_t {
     y_var -= y_mean.cwiseProduct(y_mean);
 
     auto phi_max_op = [](const auto& _yv, const auto& _ym) {
-      if (_yv <= _ym || _ym <= 1e-4) return zero_val;
-      return static_cast<const Scalar>((_yv / _ym - one_val) / _ym);
+      if (_yv <= _ym || _ym <= 1e-2) return one_val + small_val;
+      Scalar ret = static_cast<const Scalar>((_yv / _ym - one_val) / _ym);
+      if (ret < one_val) return one_val;
+      return ret;
+    };
+
+    auto phi_min_op = [](const auto& _phi_max) {
+      Scalar ret = _phi_max * 1e-2;
+      if (ret < one_val) return one_val;
+      return one_val;
     };
 
     phi_max = y_var.binaryExpr(y_mean, phi_max_op);
-    phi_min = phi_max * 1e-4;
+    phi_min = phi_max.unaryExpr(phi_min_op);
   }
 
   // lgamma(y + 1/phi)
@@ -105,7 +113,11 @@ struct nb_model_t {
     phi_mat = phi_mat.cwiseProduct(eta_var.unaryExpr(phi_op));
 
     for (Index j = 0; j < m; ++j) {
-      phi_mat.col(j) *= phi_max(j);
+      phi_mat.col(j) *= (phi_max(j) - phi_min(j));
+    }
+
+    for (Index j = 0; j < m; ++j) {
+      phi_mat.col(j).array() += phi_min(j);
     }
 
     llik_mat = Y.binaryExpr(phi_mat, lngam_ratio_op) -
@@ -128,16 +140,16 @@ struct nb_model_t {
   }
 
   ////////////////////////////////////////////////////////////////
-  // helper functors
-  // phi = phi.max * 1e-4 + (phi.max - phi.max * 1e-4) * sigmoid
+  // helper functors (start from zero dispersion)
+  // phi = phi.max * 1e-2 + (phi.max - phi.max * 1e-2) * sigmoid(x - 4)
   sigmoid_op_t<Scalar> phi_op;
 
-  // ln Gam(Y + 1/phi) - ln Gam(1/phi)
+  // ln Gam(Y + 1/phi + 1) - ln Gam(1/phi + 1)
   struct lngam_ratio_op_t {
     inline Scalar operator()(const Scalar& y, const Scalar& ph) const {
       const Scalar ph_safe = ph + small_val;
-      return fasterlgamma(y + one_val / ph_safe) -
-             fasterlgamma(one_val / ph_safe);
+      return fasterlgamma(y + one_val / ph_safe + one_val) -
+             fasterlgamma(one_val / ph_safe + one_val);
     }
   } lngam_ratio_op;
 
@@ -149,11 +161,11 @@ struct nb_model_t {
     log1pExp_op_t<Scalar> ln1p_exp_op;
   } y_lnexp1p_op;
 
-  // (1/phi) * ln(1 + exp(x))
+  // (1/phi + 1) * ln(1 + exp(x))
   struct phi_lnexp1p_op_t {
     Scalar operator()(const Scalar& phi, const Scalar& x) const {
       const Scalar phi_safe = phi + small_val;
-      return ln1p_exp_op(x) / phi_safe;
+      return ln1p_exp_op(x) * (one_val + one_val / phi_safe);
     }
     log1pExp_op_t<Scalar> ln1p_exp_op;
   } phi_lnexp1p_op;

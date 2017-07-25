@@ -148,6 +148,12 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
     }
 }
 
+nb.normalize <- function(Y) {
+    R <- apply(log(1 + Y), 2, mean)
+    ret <- sweep(Y, 2, exp(R), `/`)
+    return(ret)
+}
+
 read.plink <- function(bed.header) {
 
     glue <- function(...) paste(..., sep='')

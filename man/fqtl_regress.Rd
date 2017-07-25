@@ -96,7 +96,7 @@ X <- matrix(rnorm(n * p), n, p)
 Y <- matrix(rnorm(n * m), n, m) * 0.1
 Y[,1:3] <- Y[,1:3] + X[, 1:3] \%*\% theta
 
-## factored regression
+## Factored regression
 opt <- list(tol=1e-8, pi.ub=-1, gammax=100, vbiter=1500)
 out <- fqtl.regress(Y, X, factored=TRUE, options = opt)
 k <- dim(out$mean.left$lodds)[2]
@@ -104,9 +104,21 @@ k <- dim(out$mean.left$lodds)[2]
 image(Matrix(out$mean.left$theta[1:20,]))
 image(Matrix(out$mean.right$theta))
 
-## full regression (testing sparse coeff)
+## Full regression (testing sparse coeff)
 out <- fqtl.regress(Y, X, factored=FALSE, y.loc=1:m, x.mean.loc=1:p, cis.dist=5, options = opt)
-
 image(out$mean$theta[1:50,])
+
+## Test NB regression
+rho <- 1/(1 + exp(as.vector(-scale(Y))))
+Y.nb <- matrix(sapply(rho, rnbinom, n = 1, size = 10), nrow = n, ncol = m)
+R <- apply(log(1 + Y.nb), 2, mean)
+Y.nb <- sweep(Y.nb, 2, exp(R), `/`)
+
+opt <- list(tol=1e-8, pi.ub=-1, gammax=1e3, vbiter=1500, model = 'nb')
+out <- fqtl.regress(Y.nb, X, factored=TRUE, options = opt)
+
+image(Matrix(out$mean.left$theta[1:20,]))
+image(Matrix(out$mean.right$theta))
+
 }
 \author{Yongjin Park}

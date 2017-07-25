@@ -73,11 +73,11 @@ RcppExport SEXP fqtl_rcpp_train_mf_cis_aux(SEXP y, SEXP x_m, SEXP a_m, SEXP c_m,
   const auto model = get_model_name(option_mf_list);
 
   if (model == "nb") {
-    Rcpp::wrap(rcpp_train_mf_cis_aux<m_nb_tag>(
+    return Rcpp::wrap(rcpp_train_mf_cis_aux<m_nb_tag>(
         yy, xx_m, aa_m, cc_m, xx_v, option_mf_list, option_reg_list));
 
   } else {
-    Rcpp::wrap(rcpp_train_mf_cis_aux<m_gaussian_tag>(
+    return Rcpp::wrap(rcpp_train_mf_cis_aux<m_gaussian_tag>(
         yy, xx_m, aa_m, cc_m, xx_v, option_mf_list, option_reg_list));
   }
 
@@ -98,12 +98,12 @@ RcppExport SEXP fqtl_rcpp_train_reg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
   const auto model = get_model_name(option_list);
 
   if (model == "nb") {
-    Rcpp::wrap(
+    return Rcpp::wrap(
         rcpp_train_regression<m_nb_tag>(yy, xx_m, cc_m, xx_v, option_list));
 
   } else {
-    Rcpp::wrap(rcpp_train_regression<m_gaussian_tag>(yy, xx_m, cc_m, xx_v,
-                                                     option_list));
+    return Rcpp::wrap(rcpp_train_regression<m_gaussian_tag>(yy, xx_m, cc_m,
+                                                            xx_v, option_list));
   }
 
   END_RCPP
@@ -124,11 +124,11 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis(SEXP y, SEXP x_m, SEXP a_x_m, SEXP c_m,
   const auto model = get_model_name(option_list);
 
   if (model == "nb") {
-    Rcpp::wrap(rcpp_train_regression_cis<m_nb_tag>(yy, xx_m, adj_xx_m, cc_m,
-                                                   xx_v, option_list));
+    return Rcpp::wrap(rcpp_train_regression_cis<m_nb_tag>(
+        yy, xx_m, adj_xx_m, cc_m, xx_v, option_list));
 
   } else {
-    Rcpp::wrap(rcpp_train_regression_cis<m_gaussian_tag>(
+    return Rcpp::wrap(rcpp_train_regression_cis<m_gaussian_tag>(
         yy, xx_m, adj_xx_m, cc_m, xx_v, option_list));
   }
 
@@ -152,11 +152,11 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis_cis(SEXP y, SEXP x_m, SEXP a_x_m,
   const auto model = get_model_name(option_list);
 
   if (model == "nb") {
-    Rcpp::wrap(rcpp_train_regression_cis_cis<m_nb_tag>(
+    return Rcpp::wrap(rcpp_train_regression_cis_cis<m_nb_tag>(
         yy, xx_m, adj_xx_m, cc_m, adj_cc_m, xx_v, option_list));
 
   } else {
-    Rcpp::wrap(rcpp_train_regression_cis_cis<m_gaussian_tag>(
+    return Rcpp::wrap(rcpp_train_regression_cis_cis<m_gaussian_tag>(
         yy, xx_m, adj_xx_m, cc_m, adj_cc_m, xx_v, option_list));
   }
 
@@ -202,11 +202,11 @@ RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
   const auto model = get_model_name(option_list);
 
   if (model == "nb") {
-    Rcpp::wrap(rcpp_train_factored_regression_cis<m_nb_tag>(
+    return Rcpp::wrap(rcpp_train_factored_regression_cis<m_nb_tag>(
         yy, xx_m, cc_m, adj_cc_m, xx_v, option_list));
 
   } else {
-    Rcpp::wrap(rcpp_train_factored_regression_cis<m_gaussian_tag>(
+    return Rcpp::wrap(rcpp_train_factored_regression_cis<m_gaussian_tag>(
         yy, xx_m, cc_m, adj_cc_m, xx_v, option_list));
   }
 
