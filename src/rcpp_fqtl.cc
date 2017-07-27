@@ -22,6 +22,10 @@ RcppExport SEXP fqtl_rcpp_train_mf(SEXP y, SEXP x_m, SEXP x_v, SEXP opt_mf,
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_mf<m_nb_tag>(yy, xx_m, xx_v, option_mf_list,
                                               option_reg_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_mf<m_voom_tag>(yy, xx_m, xx_v, option_mf_list,
+                                                option_reg_list));
+
   } else {
     return Rcpp::wrap(rcpp_train_mf<m_gaussian_tag>(
         yy, xx_m, xx_v, option_mf_list, option_reg_list));
@@ -46,6 +50,9 @@ RcppExport SEXP fqtl_rcpp_train_mf_cis(SEXP y, SEXP x_m, SEXP a_m, SEXP x_v,
 
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_mf_cis<m_nb_tag>(
+        yy, xx_m, aa_m, xx_v, option_mf_list, option_reg_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_mf_cis<m_voom_tag>(
         yy, xx_m, aa_m, xx_v, option_mf_list, option_reg_list));
 
   } else {
@@ -75,6 +82,9 @@ RcppExport SEXP fqtl_rcpp_train_mf_cis_aux(SEXP y, SEXP x_m, SEXP a_m, SEXP c_m,
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_mf_cis_aux<m_nb_tag>(
         yy, xx_m, aa_m, cc_m, xx_v, option_mf_list, option_reg_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_mf_cis_aux<m_voom_tag>(
+        yy, xx_m, aa_m, cc_m, xx_v, option_mf_list, option_reg_list));
 
   } else {
     return Rcpp::wrap(rcpp_train_mf_cis_aux<m_gaussian_tag>(
@@ -100,6 +110,9 @@ RcppExport SEXP fqtl_rcpp_train_reg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
   if (model == "nb") {
     return Rcpp::wrap(
         rcpp_train_regression<m_nb_tag>(yy, xx_m, cc_m, xx_v, option_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(
+        rcpp_train_regression<m_voom_tag>(yy, xx_m, cc_m, xx_v, option_list));
 
   } else {
     return Rcpp::wrap(rcpp_train_regression<m_gaussian_tag>(yy, xx_m, cc_m,
@@ -125,6 +138,9 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis(SEXP y, SEXP x_m, SEXP a_x_m, SEXP c_m,
 
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_regression_cis<m_nb_tag>(
+        yy, xx_m, adj_xx_m, cc_m, xx_v, option_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_regression_cis<m_voom_tag>(
         yy, xx_m, adj_xx_m, cc_m, xx_v, option_list));
 
   } else {
@@ -154,6 +170,9 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis_cis(SEXP y, SEXP x_m, SEXP a_x_m,
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_regression_cis_cis<m_nb_tag>(
         yy, xx_m, adj_xx_m, cc_m, adj_cc_m, xx_v, option_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_regression_cis_cis<m_voom_tag>(
+        yy, xx_m, adj_xx_m, cc_m, adj_cc_m, xx_v, option_list));
 
   } else {
     return Rcpp::wrap(rcpp_train_regression_cis_cis<m_gaussian_tag>(
@@ -179,6 +198,9 @@ RcppExport SEXP fqtl_rcpp_train_freg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_factored_regression<m_nb_tag>(
         yy, xx_m, cc_m, xx_v, option_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_factored_regression<m_voom_tag>(
+        yy, xx_m, cc_m, xx_v, option_list));
 
   } else {
     return Rcpp::wrap(rcpp_train_factored_regression<m_gaussian_tag>(
@@ -203,6 +225,9 @@ RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
 
   if (model == "nb") {
     return Rcpp::wrap(rcpp_train_factored_regression_cis<m_nb_tag>(
+        yy, xx_m, cc_m, adj_cc_m, xx_v, option_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_factored_regression_cis<m_voom_tag>(
         yy, xx_m, cc_m, adj_cc_m, xx_v, option_list));
 
   } else {
@@ -332,7 +357,7 @@ Rcpp::List rcpp_train_mf_cis(
   ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
                   "yy and xx_var with different number of rows");
   ASSERT_LIST_RET(xx_mean.cols() == adj_mean.rows(),
-                  "xx_mean and adj_mean with different number of variables");
+                  "xx_mean and adj_mean with different number");
   ASSERT_LIST_RET(yy.cols() == adj_mean.cols(),
                   "yy and adj_mean with different number of outputs");
 
@@ -392,7 +417,8 @@ Rcpp::List rcpp_train_mf_cis(
 }
 
 ////////////////////////////////////////////////////////////////
-// mean ~ U * V' + xx_sparse_mean * theta + xx_dense_mean * theta
+// mean ~ U * V' + xx_sparse_mean * theta + xx_dense_mean *
+// theta
 // var ~ xx_var * theta
 template <typename ModelTag>
 Rcpp::List rcpp_train_mf_cis_aux(
@@ -410,9 +436,8 @@ Rcpp::List rcpp_train_mf_cis_aux(
                   "yy and xx_sparse_mean with different number of rows");
   ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
                   "yy and xx_var with different number of rows");
-  ASSERT_LIST_RET(
-      xx_sparse_mean.cols() == adj_mean.rows(),
-      "xx_sparse_mean and adj_mean with different number of variables");
+  ASSERT_LIST_RET(xx_sparse_mean.cols() == adj_mean.rows(),
+                  "xx_sparse_mean and adj_mean with different");
   ASSERT_LIST_RET(yy.cols() == adj_mean.cols(),
                   "yy and adj_mean with different number of outputs");
 
@@ -707,7 +732,7 @@ Rcpp::List rcpp_train_regression_cis(const Mat &yy,          // n x m
   ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
                   "yy and xx_var with different number of rows");
   ASSERT_LIST_RET(xx_mean.cols() == adj_mean.rows(),
-                  "xx_mean and adj_mean with different number of variables");
+                  "xx_mean and adj_mean with different number");
   ASSERT_LIST_RET(yy.cols() == adj_mean.cols(),
                   "yy and adj_mean with different number of outputs");
 
@@ -779,11 +804,11 @@ Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy,             // n x m
   ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
                   "yy and xx_var with different number of rows");
   ASSERT_LIST_RET(xx_mean.cols() == adj_xx_mean.rows(),
-                  "xx_mean and adj_xx_mean with different number of variables");
+                  "xx_mean and adj_xx_mean with different");
   ASSERT_LIST_RET(yy.cols() == adj_xx_mean.cols(),
                   "yy and adj_xx_mean with different number of outputs");
   ASSERT_LIST_RET(cc_mean.cols() == adj_cc_mean.rows(),
-                  "cc_mean and adj_cc_mean with different number of variables");
+                  "cc_mean and adj_cc_mean with different");
   ASSERT_LIST_RET(yy.cols() == adj_cc_mean.cols(),
                   "yy and adj_cc_mean with different number of outputs");
 

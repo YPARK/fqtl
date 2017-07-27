@@ -149,8 +149,8 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
 }
 
 nb.normalize <- function(Y) {
-    R <- apply(log(1 + Y), 2, mean)
-    ret <- sweep(Y, 2, exp(R), `/`)
+    R <- apply(log(1 + Y), 1, mean)
+    ret <- sweep(Y, 1, exp(R), `/`)
     return(ret)
 }
 

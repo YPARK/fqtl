@@ -163,7 +163,7 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab);
 ////////////////////////////////////////////////////////////////
 
 struct m_gaussian_tag {};
-struct m_gaussian_voom_tag {};
+struct m_voom_tag {};
 struct m_nb_tag {};
 
 template <typename Mat, typename ModelT>
@@ -179,7 +179,7 @@ struct impl_model_maker_t<Mat, m_gaussian_tag> {
     visit(Y, stat_op);
     const Scalar vmax = stat_op.var();
     const Scalar vmin = 1e-4 * vmax;
-    TLOG("Gaussian model : Vmax " << vmax << ", Vmin " << vmin);
+    TLOG("gaussian model : Vmax " << vmax << ", Vmin " << vmin);
     return std::make_shared<model_type>(Y, typename model_type::Vmin_t(vmin),
                                         typename model_type::Vmax_t(vmax));
   }
@@ -189,12 +189,13 @@ template <typename Mat>
 struct impl_model_maker_t<Mat, m_nb_tag> {
   using model_type = nb_model_t<Mat>;
   std::shared_ptr<model_type> operator()(const Mat &Y) {
+    TLOG("negative binomial model");
     return std::make_shared<model_type>(Y);
   }
 };
 
 template <typename Mat>
-struct impl_model_maker_t<Mat, m_gaussian_voom_tag> {
+struct impl_model_maker_t<Mat, m_voom_tag> {
   using Scalar = typename Mat::Scalar;
   using model_type = gaussian_voom_model_t<Mat>;
 
@@ -203,7 +204,7 @@ struct impl_model_maker_t<Mat, m_gaussian_voom_tag> {
     visit(Y, stat_op);
     const Scalar vmax = stat_op.var();
     const Scalar vmin = 1e-4 * vmax;
-    TLOG("Gaussian voom model : Vmax " << vmax << ", Vmin " << vmin);
+    TLOG("voom model : Vmax " << vmax << ", Vmin " << vmin);
     return std::make_shared<model_type>(Y, typename model_type::Vmin_t(vmin),
                                         typename model_type::Vmax_t(vmax));
   }
