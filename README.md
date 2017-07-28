@@ -31,6 +31,14 @@ To speed up matrix-vector multiplication and vectorized random number
 generation, one can compile the package with _Intel MKL_ library or
 _openblas_.
 
+## Results
+
+Analysis pipeline and pre-calculated effect sizes computed in 44 GTEx
+tissues (v6p) can be found in separate repository.
+
+[fqtl-gtex](https://github.mit.edu/ypp/fqtl-gtex)
+
+
 ## Models
 
 ### Gaussian model
