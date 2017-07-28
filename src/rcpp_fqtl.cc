@@ -565,10 +565,19 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
                    std::make_tuple(x_var_eta));
 
+  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  if (opt.out_resid()) {
+    auto resid_eta = make_residual_eta(yy, theta_resid);
+    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
+                 std::make_tuple(x_var_eta),
+                 std::make_tuple(mean_eta, c_mean_eta));
+  }
+
   return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u),
                             Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
                             Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
                             Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
                             Rcpp::_["llik"] = llik_trace);
 }
 
@@ -636,10 +645,19 @@ Rcpp::List rcpp_train_factored_regression_cis(
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
                    std::make_tuple(x_var_eta));
 
+  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  if (opt.out_resid()) {
+    auto resid_eta = make_residual_eta(yy, theta_resid);
+    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
+                 std::make_tuple(x_var_eta),
+                 std::make_tuple(mean_eta, c_mean_eta));
+  }
+
   return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u),
                             Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
                             Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
                             Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
                             Rcpp::_["llik"] = llik_trace);
 }
 
@@ -685,30 +703,20 @@ Rcpp::List rcpp_train_regression(const Mat &yy,       // n x m
                    std::make_tuple(x_var_eta));
 
   // residual calculation
-  auto theta_resid_full =
-      make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
-  auto theta_resid_cov = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+
   if (opt.out_resid()) {
-    {
-      auto resid_eta = make_residual_eta(yy, theta_resid_full);
-      impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                   std::make_tuple(x_var_eta),
-                   std::make_tuple(mean_eta, c_mean_eta));
-    }
-    {
-      auto resid_eta = make_residual_eta(yy, theta_resid_cov);
-      impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(mean_eta));
-    }
+    auto resid_eta = make_residual_eta(yy, theta_resid);
+    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
+                 std::make_tuple(x_var_eta),
+                 std::make_tuple(mean_eta, c_mean_eta));
   }
 
-  return Rcpp::List::create(
-      Rcpp::_["mean"] = param_rcpp_list(mean_theta),
-      Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
-      Rcpp::_["var"] = param_rcpp_list(x_var_theta),
-      Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
-      Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov),
-      Rcpp::_["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta),
+                            Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
+                            Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -756,30 +764,22 @@ Rcpp::List rcpp_train_regression_cis(const Mat &yy,          // n x m
                    std::make_tuple(x_var_eta));
 
   // residual calculation
-  auto theta_resid_full =
-      make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
-  auto theta_resid_cov = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+
   if (opt.out_resid()) {
     {
-      auto resid_eta = make_residual_eta(yy, theta_resid_full);
+      auto resid_eta = make_residual_eta(yy, theta_resid);
       impl_fit_eta(model, opt, std::make_tuple(resid_eta),
                    std::make_tuple(x_var_eta),
                    std::make_tuple(mean_eta, c_mean_eta));
     }
-    {
-      auto resid_eta = make_residual_eta(yy, theta_resid_cov);
-      impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(mean_eta));
-    }
   }
 
-  return Rcpp::List::create(
-      Rcpp::_["mean"] = param_rcpp_list(mean_theta),
-      Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
-      Rcpp::_["var"] = param_rcpp_list(x_var_theta),
-      Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
-      Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov),
-      Rcpp::_["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta),
+                            Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
+                            Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -831,30 +831,20 @@ Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy,             // n x m
                    std::make_tuple(x_var_eta));
 
   // residual calculation
-  auto theta_resid_full =
-      make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
-  auto theta_resid_cov = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+
   if (opt.out_resid()) {
-    {
-      auto resid_eta = make_residual_eta(yy, theta_resid_full);
-      impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                   std::make_tuple(x_var_eta),
-                   std::make_tuple(mean_eta, c_mean_eta));
-    }
-    {
-      auto resid_eta = make_residual_eta(yy, theta_resid_cov);
-      impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                   std::make_tuple(x_var_eta), std::make_tuple(mean_eta));
-    }
+    auto resid_eta = make_residual_eta(yy, theta_resid);
+    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
+                 std::make_tuple(x_var_eta),
+                 std::make_tuple(mean_eta, c_mean_eta));
   }
 
-  return Rcpp::List::create(
-      Rcpp::_["mean"] = param_rcpp_list(mean_theta),
-      Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
-      Rcpp::_["var"] = param_rcpp_list(x_var_theta),
-      Rcpp::_["resid.full"] = param_rcpp_list(theta_resid_full),
-      Rcpp::_["resid.no.mean"] = param_rcpp_list(theta_resid_cov),
-      Rcpp::_["llik"] = llik_trace);
+  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta),
+                            Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
+                            Rcpp::_["llik"] = llik_trace);
 }
 
 template <typename T>
