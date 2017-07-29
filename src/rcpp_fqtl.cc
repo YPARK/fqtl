@@ -565,7 +565,7 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
                    std::make_tuple(x_var_eta));
 
-  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_slab<Scalar>(yy.rows(), yy.cols(), opt);
   if (opt.out_resid()) {
     auto resid_eta = make_residual_eta(yy, theta_resid);
     impl_fit_eta(model, opt, std::make_tuple(resid_eta),
@@ -645,7 +645,7 @@ Rcpp::List rcpp_train_factored_regression_cis(
       impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
                    std::make_tuple(x_var_eta));
 
-  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_slab<Scalar>(yy.rows(), yy.cols(), opt);
   if (opt.out_resid()) {
     auto resid_eta = make_residual_eta(yy, theta_resid);
     impl_fit_eta(model, opt, std::make_tuple(resid_eta),
@@ -703,7 +703,7 @@ Rcpp::List rcpp_train_regression(const Mat &yy,       // n x m
                    std::make_tuple(x_var_eta));
 
   // residual calculation
-  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_slab<Scalar>(yy.rows(), yy.cols(), opt);
 
   if (opt.out_resid()) {
     auto resid_eta = make_residual_eta(yy, theta_resid);
@@ -764,7 +764,7 @@ Rcpp::List rcpp_train_regression_cis(const Mat &yy,          // n x m
                    std::make_tuple(x_var_eta));
 
   // residual calculation
-  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_slab<Scalar>(yy.rows(), yy.cols(), opt);
 
   if (opt.out_resid()) {
     {
@@ -831,7 +831,7 @@ Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy,             // n x m
                    std::make_tuple(x_var_eta));
 
   // residual calculation
-  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  auto theta_resid = make_dense_slab<Scalar>(yy.rows(), yy.cols(), opt);
 
   if (opt.out_resid()) {
     auto resid_eta = make_residual_eta(yy, theta_resid);
