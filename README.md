@@ -90,6 +90,50 @@ phi_max = (Vobs / Ybar - 1) / Ybar
 ```
 
 
+### Negative binomial model (redefined with psuedo-count)
+
+$$p(y|\alpha,\beta) = \frac{\Gamma(\alpha + y + a_{0})}{\Gamma(y+1)\Gamma(\alpha + a_{0})}
+\left(\frac{1}{1 + 1/\beta}\right)^{\alpha + a_{0}}
+\left(\frac{1}{1 + \beta}\right)^{y}$$
+
+$\mathbb{E}[y|\alpha,a_{0},\beta] = (\alpha + a_{0})/\beta$
+
+$\mathbb{V}[y|\alpha,a_{0},\beta] = (\alpha + a_{0})/\beta + (\alpha + a_{0})/\beta^{2}$
+
+$\mu = (a_{0} + 1/\phi) / \beta = \exp\left\{ \eta_{\mu} + \ln (a_{0} + 1/\phi) \right\}$
+
+$\sigma^{2} = \mu + \mu^{2} / (a_{0} + \alpha)$
+
+$\alpha = \alpha_{\min} + (\alpha_{\max} - \alpha_{\min}) \boldsymbol{\sigma}\!\left( - \eta_{\nu} \right)$
+
+$\beta = \exp(-\eta_{\mu})$
+
+---
+
+$$\ln p(y|\alpha,\beta) = \ln \frac{\Gamma(\alpha + y + a_{0})}{\Gamma(y+1)\Gamma(\alpha + a_{0})}
+- (\alpha + a_{0}) \ln \left(1 + 1/\beta\right)
+- y \ln \left(1 + \beta\right)$$
+
+
+$$-(\alpha + a_{0}) \ln(1 + \exp[\eta_{\mu}])$$
+
+$$-y \ln(1 + \exp[-\eta_{\mu}])$$
+
+
+
+---
+
+$\bar{y} + \bar{y}^{2} / (a_{0} + \alpha) < \hat{\sigma}^{2}$
+
+$1 / (a_{0} + \alpha) < (\hat{\sigma}^{2} / \bar{y} - 1)/ \bar{y}$
+
+$a_{0} + \alpha > \bar{y} / (\hat{\sigma}^{2} / \bar{y} - 1)$
+
+$\alpha > \bar{y} / (\hat{\sigma}^{2} / \bar{y} - 1) - a_{0}$
+
+We can simply set $\alpha_{\max} = \hat{\sigma}^{2}$
+
+
 ### Voom model
 
 Law _et al._ (2014) presents log2-transformed over-dispersion model.

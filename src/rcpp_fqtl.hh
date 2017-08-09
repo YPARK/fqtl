@@ -189,8 +189,16 @@ template <typename Mat>
 struct impl_model_maker_t<Mat, m_nb_tag> {
   using model_type = nb_model_t<Mat>;
   std::shared_ptr<model_type> operator()(const Mat &Y) {
-    TLOG("negative binomial model");
-    return std::make_shared<model_type>(Y);
+    calc_stat_t<Scalar> stat_op;
+    visit(Y, stat_op);
+
+    Scalar a_min = stat_op.mean() / (stat_op.var() / stat_op.mean() - 1.0);
+
+    if (a_min < 1e-4) a_min = 1e-4;
+
+    TLOG("negative binomial model : alpha [" << a_min << "]");
+    return std::make_shared<model_type>(
+        Y, typename model_type::alpha_min_t(a_min));
   }
 };
 
