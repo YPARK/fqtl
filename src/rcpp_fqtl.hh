@@ -8,15 +8,21 @@
 #include <omp.h>
 
 #include <memory>
+
+#include "rcpp_util.hh"
+#include "eigen_util.hh"
+#include "gaus_repr.hh"
+#include "parameters.hh"
+
 #include "convergence.hh"
 #include "dummy.hh"
 #include "factorization.hh"
 #include "gaussian.hh"
 #include "gaussian_voom.hh"
 #include "nb.hh"
+#include "beta.hh"
 #include "options.hh"
 #include "parameters.hh"
-#include "rcpp_util.hh"
 #include "regression.hh"
 #include "regression_factored.hh"
 #include "residual.hh"
@@ -165,6 +171,7 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab);
 struct m_gaussian_tag {};
 struct m_voom_tag {};
 struct m_nb_tag {};
+struct m_beta_tag {};
 
 template <typename Mat, typename ModelT>
 struct impl_model_maker_t;
@@ -187,7 +194,9 @@ struct impl_model_maker_t<Mat, m_gaussian_tag> {
 
 template <typename Mat>
 struct impl_model_maker_t<Mat, m_nb_tag> {
+  using Scalar = typename Mat::Scalar;
   using model_type = nb_model_t<Mat>;
+
   std::shared_ptr<model_type> operator()(const Mat &Y) {
     calc_stat_t<Scalar> stat_op;
     visit(Y, stat_op);
@@ -215,6 +224,33 @@ struct impl_model_maker_t<Mat, m_voom_tag> {
     TLOG("voom model : Vmax " << vmax << ", Vmin " << vmin);
     return std::make_shared<model_type>(Y, typename model_type::Vmin_t(vmin),
                                         typename model_type::Vmax_t(vmax));
+  }
+};
+
+template <typename Mat>
+struct impl_model_maker_t<Mat, m_beta_tag> {
+  using Scalar = typename Mat::Scalar;
+  using model_type = beta_model_t<Mat>;
+
+  std::shared_ptr<model_type> operator()(const Mat &Y) {
+    calc_stat_t<Scalar> stat_op;
+    visit(Y, stat_op);
+
+    const Scalar ymax = stat_op.max();
+    const Scalar ymin = stat_op.min();
+
+    if (ymin <= 0.0 || ymax >= 1.0)
+      WLOG("values outside of (0, 1) will be ignored");
+
+    const Scalar beta_prior = 1e-4;
+
+    // maximum possible precision of beta
+    const Scalar max_prec = 0.25 / (stat_op.var() + 1e-8);
+    TLOG("Beta model : maximum precision " << max_prec);
+
+    return std::make_shared<model_type>(
+        Y, typename model_type::beta_hyper_t(beta_prior),
+        typename model_type::beta_maxprec_t(max_prec));
   }
 };
 
