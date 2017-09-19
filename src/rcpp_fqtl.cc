@@ -988,6 +988,17 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
     opt.OUT_RESID = Rcpp::as<bool>(_list["out.residual"]);
   if (_list.containsElementNamed("model"))
     opt.MODEL_NAME = Rcpp::as<std::string>(_list["model"]);
+
+  if (_list.containsElementNamed("do.hyper"))
+    opt.DO_HYPER = Rcpp::as<bool>(_list["do.hyper"]);
+  if (_list.containsElementNamed("tau")) {
+    opt.TAU_LODDS_LB = Rcpp::as<Scalar>(_list["tau"]);
+    opt.TAU_LODDS_UB = Rcpp::as<Scalar>(_list["tau"]);
+  }
+  if (_list.containsElementNamed("pi")) {
+    opt.PI_LODDS_LB = Rcpp::as<Scalar>(_list["pi"]);
+    opt.PI_LODDS_UB = Rcpp::as<Scalar>(_list["pi"]);
+  }
 }
 
 ////////////////////////////////////////////////////////////////

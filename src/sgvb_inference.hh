@@ -125,22 +125,24 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   }
 
   // hyperparameter tuning
-  do_hyper = true;
-  for (; t < 2 * niter; ++t) {
-    if (Progress::check_abort()) {
-      break;
-    }
-    prog.increment();
-    rate = opt.rate0() * std::pow(static_cast<Scalar>(t + 1), opt.decay());
-    func_apply(update_sgd_eta, std::move(mean_eta_tup));
-    func_apply(update_sgd_eta, std::move(var_eta_tup));
+  if (opt.do_hyper()) {
+    do_hyper = true;
+    for (; t < 2 * niter; ++t) {
+      if (Progress::check_abort()) {
+        break;
+      }
+      prog.increment();
+      rate = opt.rate0() * std::pow(static_cast<Scalar>(t + 1), opt.decay());
+      func_apply(update_sgd_eta, std::move(mean_eta_tup));
+      func_apply(update_sgd_eta, std::move(var_eta_tup));
 
-    conv.add(model.llik().transpose() * onesN);
-    bool converged = conv.converged(opt.vbtol(), opt.miniter());
-    if (opt.verbose()) conv.print(Rcpp::Rcerr);
-    if (converged) {
-      TLOG("Converged hyperparameter log-likelihood");
-      break;
+      conv.add(model.llik().transpose() * onesN);
+      bool converged = conv.converged(opt.vbtol(), opt.miniter());
+      if (opt.verbose()) conv.print(Rcpp::Rcerr);
+      if (converged) {
+        TLOG("Converged hyperparameter log-likelihood");
+        break;
+      }
     }
   }
 

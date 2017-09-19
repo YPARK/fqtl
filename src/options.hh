@@ -29,6 +29,7 @@ struct options_t {
     RSEED = 13;
     MF_SVD_INIT = true;
     MF_PRETRAIN = true;
+    DO_HYPER = false;
   }
 
   const unsigned int vbiter() const { return VBITER; };
@@ -54,6 +55,7 @@ struct options_t {
   const std::string model_name() const { return MODEL_NAME; }
   const unsigned int rseed() const { return RSEED; };
   const bool mf_pretrain() const { return MF_PRETRAIN; }
+  const bool do_hyper() const { return DO_HYPER; }
 
   unsigned int VBITER;
   unsigned int MINITER;
@@ -79,6 +81,8 @@ struct options_t {
   bool OUT_RESID;
   bool MF_SVD_INIT;
   bool MF_PRETRAIN;
+  bool DO_HYPER;
+
   std::string MODEL_NAME;
   unsigned int RSEED;
 };

@@ -45,6 +45,11 @@ fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
   \item{cis.dist}{distance between x and y (default: 5e5)}
 
   \item{options}{a list of options (see below)}
+
+  \item{do.hyper}{Hyper parameter tuning (default: FALSE)}
+  \item{tau}{Fixed value of tau}
+  \item{pi}{Fixed value of pi}
+
   \item{vbiter}{ max iterations of variational inference (default: 1000)}
   \item{tol}{ tolerance level to determine convergence (default: 1e-8)}
   \item{gammax}{ maximum precision of coefficients (default: 100)}
