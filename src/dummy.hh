@@ -16,6 +16,7 @@ struct dummy_eta_t {
   }
 
   inline void eval_sgd() const {}
+
   inline void eval_hyper_sgd() const {}
 
   template <typename T>
@@ -40,15 +41,15 @@ inline const Eigen::MatrixBase<Derived> &operator+(
 }
 
 template <typename Derived>
-inline const Eigen::MatrixBase<Derived> &operator+=(
-    const Eigen::MatrixBase<Derived> &lhs, const dummy_mat_t &) {
-  return lhs;
-}
-
-template <typename Derived>
 inline const Eigen::MatrixBase<Derived> &operator+(
     const dummy_mat_t &, const Eigen::MatrixBase<Derived> &rhs) {
   return rhs;
+}
+
+template <typename Derived>
+inline const Eigen::MatrixBase<Derived> &operator+=(
+    const Eigen::MatrixBase<Derived> &lhs, const dummy_mat_t &) {
+  return lhs;
 }
 
 template <typename Derived>

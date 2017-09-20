@@ -119,8 +119,10 @@ Y.nb <- matrix(sapply(rho, rnbinom, n = 1, size = 10), nrow = n, ncol = m)
 R <- apply(log(1 + Y.nb), 2, mean)
 Y.nb <- sweep(Y.nb, 2, exp(R), `/`)
 
-opt <- list(tol=1e-8, pi.ub=-1, gammax=1e3, vbiter=1500, model = 'nb', out.residual=FALSE)
+opt <- list(tol=1e-8, pi.ub=-1, gammax=1e3, vbiter=1500, model = 'nb', out.residual=TRUE)
 out <- fqtl.regress(Y.nb, X, factored=TRUE, options = opt)
+
+plot(out$resid[, 1], Y.nb[, 1], pch = 19, cex = .5);
 
 image(Matrix(out$mean.left$theta[1:20,]))
 image(Matrix(out$mean.right$theta))
