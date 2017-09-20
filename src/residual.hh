@@ -73,6 +73,8 @@ struct residual_t {
         m(yy.cols()),
         Nobs(n, m),
         Theta(theta),
+        G1(n, m),
+        G2(n, m),
         Eta(make_gaus_repr(yy)) {
     check_dim(Theta, n, m, "Theta in residual_t");
     check_dim(Eta, n, m, "Eta in residual_t");
@@ -89,6 +91,8 @@ struct residual_t {
 
   ParamMatrix Nobs;
   Param& Theta;
+  ParamMatrix G1;
+  ParamMatrix G2;
   Repr Eta;
 
   void resolve() {
@@ -96,10 +100,11 @@ struct residual_t {
     update_var(Eta, var_param(Theta));
   }
 
-  template <typename RAND>
-  const ReprMatrix& sample(const RAND& rnorm) {
-    return sample_repr(Eta, rnorm);
+  template <typename RNG>
+  inline const ReprMatrix& sample(const RNG& rng) {
+    return sample_repr(Eta, rng);
   }
+
   const ReprMatrix& repr_mean() const { return Eta.get_mean(); }
   const ReprMatrix& repr_var() const { return Eta.get_var(); }
 
@@ -107,7 +112,9 @@ struct residual_t {
 
   void eval_sgd() {
     Eta.summarize();
-    eval_param_sgd(Theta, Eta.get_grad_type1(), Eta.get_grad_type2(), Nobs);
+    G1 = Eta.get_grad_type1();
+    G2 = Eta.get_grad_type2();
+    eval_param_sgd(Theta, G1, G2, Nobs);
   }
 
   void update_sgd(const Scalar rate) {
@@ -118,8 +125,9 @@ struct residual_t {
 
   void eval_hyper_sgd() {
     Eta.summarize();
-    eval_hyperparam_sgd(Theta, Eta.get_grad_type1(), Eta.get_grad_type2(),
-                        Nobs);
+    G1 = Eta.get_grad_type1();
+    G2 = Eta.get_grad_type2();
+    eval_hyperparam_sgd(Theta, G1, G2, Nobs);
   }
 
   void update_hyper_sgd(const Scalar rate) {

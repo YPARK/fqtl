@@ -107,8 +107,8 @@ auto impl_fit_eta(Model &model, const Opt &opt,
       var_sampled.setZero();
       func_apply(sample_mean_eta, std::move(mean_eta_tup));
       func_apply(sample_var_eta, std::move(var_eta_tup));
-      func_apply(add_mean_eta, std::move(clamped_mean_eta_tup));
-      func_apply(add_var_eta, std::move(clamped_var_eta_tup));
+      func_apply(sample_mean_eta, std::move(clamped_mean_eta_tup));
+      func_apply(sample_var_eta, std::move(clamped_var_eta_tup));
       model.eval(mean_sampled, var_sampled);
       eta.add_sgd(model.llik());
     }
