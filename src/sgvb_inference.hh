@@ -13,33 +13,51 @@
 #ifndef SGVB_INFERENCE_HH_
 #define SGVB_INFERENCE_HH_
 
-// Fit multiple eta's
 template <typename Model, typename Opt, typename... MeanEtas,
-          typename... VarEtas, typename... ClampedMeanEtas>
+          typename... VarEtas, typename... ClampedMeanEtas,
+          typename... ClampedVarEtas>
 auto impl_fit_eta(Model &model, const Opt &opt,
                   std::tuple<MeanEtas...> &&mean_eta_tup,
                   std::tuple<VarEtas...> &&var_eta_tup,
-                  std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup);
+                  std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup,
+                  std::tuple<ClampedVarEtas...> &&clamped_var_eta_tup);
 
-// Fit multiple eta's
 template <typename Model, typename Opt, typename... MeanEtas,
-          typename... VarEtas, typename... ClampedMeanEtas>
+          typename... VarEtas>
 auto impl_fit_eta(Model &model, const Opt &opt,
                   std::tuple<MeanEtas...> &&mean_eta_tup,
                   std::tuple<VarEtas...> &&var_eta_tup) {
   dummy_eta_t dummy_eta;
-  return impl_fit_eta(model, opt, std::move(mean_eta_tup),
-                      std::move(var_eta_tup), std::make_tuple(dummy_eta));
+  return impl_fit_eta(model, opt,
+                      std::move(mean_eta_tup),      // mean
+                      std::move(var_eta_tup),       // variance
+                      std::make_tuple(dummy_eta),   // clamped mean
+                      std::make_tuple(dummy_eta));  // clamped variance
 }
 
-////////////////////////////////////////////////////////////////
-// Fit multiple eta's
 template <typename Model, typename Opt, typename... MeanEtas,
           typename... VarEtas, typename... ClampedMeanEtas>
 auto impl_fit_eta(Model &model, const Opt &opt,
                   std::tuple<MeanEtas...> &&mean_eta_tup,
                   std::tuple<VarEtas...> &&var_eta_tup,
                   std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup) {
+  dummy_eta_t dummy_eta;
+  return impl_fit_eta(model, opt, std::move(mean_eta_tup),  // mean
+                      std::move(var_eta_tup),               // variance
+                      std::move(clamped_mean_eta_tup),      // clamped mean
+                      std::make_tuple(dummy_eta));          // clamped variance
+}
+
+////////////////////////////////////////////////////////////////
+// Fit multiple eta's
+template <typename Model, typename Opt, typename... MeanEtas,
+          typename... VarEtas, typename... ClampedMeanEtas,
+          typename... ClampedVarEtas>
+auto impl_fit_eta(Model &model, const Opt &opt,
+                  std::tuple<MeanEtas...> &&mean_eta_tup,
+                  std::tuple<VarEtas...> &&var_eta_tup,
+                  std::tuple<ClampedMeanEtas...> &&clamped_mean_eta_tup,
+                  std::tuple<ClampedVarEtas...> &&clamped_var_eta_tup) {
   using Scalar = typename Model::Scalar;
   using Index = typename Model::Index;
   using Mat = typename Model::Data;
@@ -74,24 +92,18 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   Scalar rate = opt.rate0();
   bool do_hyper = false;
 
-  auto sample_mean_eta = [&rng, &mean_sampled](auto &&eta) {
-    mean_sampled += eta.sample(rng);
-  };
+  auto sample_mean_eta = [&](auto &&eta) { mean_sampled += eta.sample(rng); };
 
-  auto sample_var_eta = [&rng, &var_sampled](auto &&eta) {
-    var_sampled += eta.sample(rng);
-  };
+  auto sample_var_eta = [&](auto &&eta) { var_sampled += eta.sample(rng); };
 
-  auto update_sgd_eta = [&nstoch, &mean_eta_tup, &var_eta_tup,
-                         &clamped_mean_eta_tup, &sample_mean_eta,
-                         &sample_var_eta, &mean_sampled, &var_sampled, &model,
-                         &rate, &do_hyper](auto &&eta) {
+  auto update_sgd_eta = [&](auto &&eta) {
 
     for (Index s = 0; s < nstoch; ++s) {
       mean_sampled.setZero();
       var_sampled.setZero();
       func_apply(sample_mean_eta, std::move(mean_eta_tup));
       func_apply(sample_var_eta, std::move(var_eta_tup));
+      func_apply(sample_var_eta, std::move(clamped_var_eta_tup));
       func_apply(sample_mean_eta, std::move(clamped_mean_eta_tup));
       model.eval(mean_sampled, var_sampled);
       eta.add_sgd(model.llik());

@@ -9,10 +9,24 @@ struct dummy_mat_t {
 
 struct dummy_eta_t {
   inline const dummy_mat_t &repr_mean() const { return dummy_mat; }
+
   template <typename T>
   inline const dummy_mat_t &sample(T &) const {
     return dummy_mat;
   }
+
+  inline void eval_sgd() const {}
+  inline void eval_hyper_sgd() const {}
+
+  template <typename T>
+  inline void add_sgd(T &) const {}
+
+  template <typename T>
+  inline void update_sgd(T &) const {}
+
+  template <typename T>
+  inline void update_hyper_sgd(T &) const {}
+
   void resolve() const {}
   dummy_mat_t dummy_mat;
 };
