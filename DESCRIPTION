@@ -1,8 +1,8 @@
 Package: fqtl
 Type: Package
 Title: FQTL
-Version: 1.2
-Date: 2017-07-24
+Version: 1.3
+Date: 2017-09-20
 Author: Yongjin Park, Abhishek Sarkar, Kunal Butani, Manolis Kellis
 Maintainer: Yongjin Park <ypp@csail.mit.edu>
 Description: Factored QTL estimation
