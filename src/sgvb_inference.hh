@@ -79,6 +79,8 @@ auto impl_fit_eta(Model &model, const Opt &opt,
   Scalar rate = opt.rate0();
   bool do_hyper = false;
 
+  auto resolve_eta = [&](auto &&eta) { eta.resolve(); };
+
   auto sample_mean_eta = [&](auto &&eta) {
     mean_sampled = mean_sampled + eta.sample(rng);
   };
@@ -106,6 +108,12 @@ auto impl_fit_eta(Model &model, const Opt &opt,
     eta.eval_sgd();
     eta.update_sgd(rate);
   };
+
+  // first resolve current states for everything
+  func_apply(resolve_eta, std::move(clamped_mean_eta_tup));
+  func_apply(resolve_eta, std::move(clamped_var_eta_tup));
+  func_apply(resolve_eta, std::move(mean_eta_tup));
+  func_apply(resolve_eta, std::move(var_eta_tup));
 
   // initial tuning without hyperparameter optimization
   do_hyper = false;

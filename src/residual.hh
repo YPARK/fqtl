@@ -101,12 +101,12 @@ struct residual_t {
   }
 
   template <typename RNG>
-  inline const ReprMatrix& sample(const RNG& rng) {
+  inline Eigen::Ref<const ReprMatrix> sample(const RNG& rng) {
     return sample_repr(Eta, rng);
   }
 
-  const ReprMatrix& repr_mean() const { return Eta.get_mean(); }
-  const ReprMatrix& repr_var() const { return Eta.get_var(); }
+  inline Eigen::Ref<const ReprMatrix> repr_mean() { return Eta.get_mean(); }
+  inline Eigen::Ref<const ReprMatrix> repr_var() { return Eta.get_var(); }
 
   void add_sgd(const ReprMatrix& llik) { update_repr(Eta, llik); }
 

@@ -31,7 +31,7 @@ struct factored_regression_t {
   using Index = typename param_traits<ParamLeft>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit factored_regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
+  explicit factored_regression_t(const auto &xx, const auto &yy,
                                  ParamLeft &thetaL, ParamRight &thetaR)
       : n(xx.rows()),
         p(xx.cols()),
@@ -107,14 +107,14 @@ struct factored_regression_t {
   Repr Eta;              // n x m
 
   template <typename RNG>
-  inline const ReprMatrix &sample(RNG &rng) {
+  inline Eigen::Ref<const ReprMatrix> sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
 
-  const ReprMatrix &repr_mean() const { return Eta.get_mean(); }
-  const ReprMatrix &repr_var() const { return Eta.get_var(); }
+  inline Eigen::Ref<const ReprMatrix> repr_mean() { return Eta.get_mean(); }
+  inline Eigen::Ref<const ReprMatrix> repr_var() { return Eta.get_var(); }
 
-  inline void add_sgd(const ReprMatrix &llik) { update_repr(Eta, llik); }
+  inline void add_sgd(const auto &llik) { update_repr(Eta, llik); }
 
   // mean = X * E[L] * E[R]'
   // var = X^2 * (Var[L] * Var[R]' + E[L]^2 * Var[R]' + Var[L] * E[R']^2)
@@ -200,7 +200,7 @@ struct factored_regression_t {
     this->resolve();
   }
 
-  inline void init_by_svd(const ReprMatrix &yy, const Scalar sd) {
+  inline void init_by_svd(const auto &yy, const Scalar sd) {
     ReprMatrix Y;
     remove_missing(yy, Y);
     ReprMatrix XtY = X.transpose() * Y / static_cast<Scalar>(n);

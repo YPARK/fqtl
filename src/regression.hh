@@ -138,8 +138,7 @@ struct regression_t {
   using Index = typename param_traits<Param>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
-                        Param &theta)
+  explicit regression_t(const auto &xx, const auto &yy, Param &theta)
       : n(xx.rows()),
         p(xx.cols()),
         m(yy.cols()),
@@ -184,13 +183,14 @@ struct regression_t {
   }
 
   template <typename RNG>
-  inline const ReprMatrix &sample(const RNG &rng) {
+  inline Eigen::Ref<const ReprMatrix> sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
-  const ReprMatrix &repr_mean() const { return Eta.get_mean(); }
-  const ReprMatrix &repr_var() const { return Eta.get_var(); }
 
-  void add_sgd(const ReprMatrix &llik) { update_repr(Eta, llik); }
+  inline Eigen::Ref<const ReprMatrix> repr_mean() { return Eta.get_mean(); }
+  inline Eigen::Ref<const ReprMatrix> repr_var() { return Eta.get_var(); }
+
+  void add_sgd(const auto &llik) { update_repr(Eta, llik); }
 
   void eval_sgd() {
     Eta.summarize();
@@ -234,8 +234,7 @@ struct transpose_regression_t {
   using Index = typename param_traits<Param>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit transpose_regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
-                                  Param &theta)
+  explicit transpose_regression_t(const auto &xx, const auto &yy, Param &theta)
       : n(yy.rows()),
         p(xx.rows()),
         m(xx.cols()),
@@ -280,14 +279,14 @@ struct transpose_regression_t {
   }
 
   template <typename RNG>
-  inline const ReprMatrix &sample(const RNG &rng) {
+  inline Eigen::Ref<const ReprMatrix> sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
 
-  const ReprMatrix &repr_mean() const { return Eta.get_mean(); }
-  const ReprMatrix &repr_var() const { return Eta.get_var(); }
+  inline Eigen::Ref<const ReprMatrix> repr_mean() { return Eta.get_mean(); }
+  inline Eigen::Ref<const ReprMatrix> repr_var() { return Eta.get_var(); }
 
-  void add_sgd(const ReprMatrix &llik) { update_repr(Eta, llik); }
+  void add_sgd(const auto &llik) { update_repr(Eta, llik); }
 
   void eval_sgd() {
     Eta.summarize();

@@ -71,7 +71,7 @@ struct factorization_t {
   using Scalar = typename DataMat::Scalar;
   using Index = typename DataMat::Index;
 
-  explicit factorization_t(const DataMat &data, UParam &u, VParam &v)
+  explicit factorization_t(const auto &data, UParam &u, VParam &v)
       : Eta(make_gaus_repr(data)),
         U(u),
         V(v),
@@ -129,7 +129,7 @@ struct factorization_t {
     resolve();
   }
 
-  inline void init_by_svd(const DataMat &data, const Scalar sd) {
+  inline void init_by_svd(const auto &data, const Scalar sd) {
     Eigen::JacobiSVD<DataMat> svd(data,
                                   Eigen::ComputeThinU | Eigen::ComputeThinV);
     DataMat uu = svd.matrixU() * sd;
@@ -167,13 +167,14 @@ struct factorization_t {
   VParamMat grad_v_var;
 
   template <typename RNG>
-  inline const DataMat &sample(const RNG &rng) {
+  inline const auto &sample(const RNG &rng) {
     return sample_repr(Eta, rng);
   }
-  const DataMat &repr_mean() const { return Eta.get_mean(); }
-  const DataMat &repr_var() const { return Eta.get_var(); }
 
-  inline void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
+  const auto &repr_mean() { return Eta.get_mean(); }
+  const auto &repr_var() { return Eta.get_var(); }
+
+  inline void add_sgd(const auto &llik) { update_repr(Eta, llik); }
 
   // mean = E[U] * E[V']
   // var  = Var[U] * Var[V'] + E[U]^2 * Var[V'] + Var[U] * E[V']^2

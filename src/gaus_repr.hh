@@ -102,8 +102,8 @@ struct gaus_repr_t {
     return G2;
   }
 
-  const Matrix& get_mean() const { return Mean; }
-  const Matrix& get_var() const { return Var; }
+  const Matrix& get_mean() { return Mean; }
+  const Matrix& get_var() { return Var; }
 
   void summarize() {
     if (n_add_sgd > 0) {
