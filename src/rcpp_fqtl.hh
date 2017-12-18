@@ -9,18 +9,19 @@
 
 #include <memory>
 
-#include "rcpp_util.hh"
 #include "eigen_util.hh"
 #include "gaus_repr.hh"
 #include "parameters.hh"
+#include "rcpp_util.hh"
 
+#include "beta.hh"
 #include "convergence.hh"
 #include "dummy.hh"
 #include "factorization.hh"
 #include "gaussian.hh"
 #include "gaussian_voom.hh"
+#include "logit.hh"
 #include "nb.hh"
-#include "beta.hh"
 #include "options.hh"
 #include "parameters.hh"
 #include "regression.hh"
@@ -171,6 +172,7 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab);
 struct m_gaussian_tag {};
 struct m_voom_tag {};
 struct m_nb_tag {};
+struct m_logit_tag {};
 struct m_beta_tag {};
 
 template <typename Mat, typename ModelT>
@@ -208,6 +210,14 @@ struct impl_model_maker_t<Mat, m_nb_tag> {
     TLOG("negative binomial model : alpha [" << a_min << "]");
     return std::make_shared<model_type>(
         Y, typename model_type::alpha_min_t(a_min));
+  }
+};
+
+template <typename Mat>
+struct impl_model_maker_t<Mat, m_logit_tag> {
+  using model_type = logit_model_t<Mat>;
+  std::shared_ptr<model_type> operator()(const Mat &Y) {
+    return std::make_shared<model_type>(Y);
   }
 };
 
