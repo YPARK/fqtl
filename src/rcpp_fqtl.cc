@@ -611,7 +611,7 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
 
   const Index p = xx_mean.cols();
   const Index m = yy.cols();
-  const Index K = opt.k();
+  const Index K = std::min(static_cast<Index>(opt.k()), yy.cols());
 
   auto c_mean_theta =
       make_dense_spike_slab<Scalar>(cc_mean.cols(), yy.cols(), opt);
@@ -694,7 +694,7 @@ Rcpp::List rcpp_train_factored_regression_cis(
 
   const Index p = xx_mean.cols();
   const Index m = yy.cols();
-  const Index K = opt.k();
+  const Index K = std::min(static_cast<Index>(opt.k()), yy.cols());
 
   auto c_mean_theta = make_sparse_spike_slab<Scalar>(adj_cc_mean, opt);
   auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
