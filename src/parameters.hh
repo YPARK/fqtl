@@ -35,6 +35,13 @@ struct tag_param_row_spike_slab {
 };  // q(theta[j,g]) ~ alpha[j] * N(beta[j,g], 1/gamma[j]) + (1-alpha[j]) *
     // delta(theta)
 
+// q(theta[j,g]) ~ alpha[j,g] * gamma(mu[j,g], 1) + (1-alpha[j,g])
+// * delta(theta)
+struct tag_param_spike_gamma {};
+
+// theta ~ Beta(mu * phi, (1 - mu) * phi)
+struct tag_param_beta {};
+
 struct tag_param_sparse {};
 struct tag_param_dense {};
 
@@ -45,6 +52,8 @@ struct tag_param_dense {};
 #include "param_row_spike_slab.hh"
 #include "param_slab.hh"
 #include "param_spike_slab.hh"
+#include "param_spike_gamma.hh"
+#include "param_beta.hh"
 
 template <typename Derived>
 using SparseDeriv = Eigen::SparseMatrixBase<Derived>;

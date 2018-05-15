@@ -20,7 +20,7 @@
 \usage{
 fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
              y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
-             c.mean.loc = NULL, cis.dist = 5e5, 
+             c.mean.loc = NULL, cis.dist = 5e5, weight.nk = NULL,
              options = list(vbiter=1000, tol=1e-8,
                            gammax=100, rate=0.01, decay=-0.1, pi.ub=-1,
                            pi.lb=-4, tau.lb=-10, tau.ub=-4,
@@ -36,10 +36,10 @@ fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
   \item{x.var}{design matrix for variance; \eqn{\eta_{\mathsf{var}}\sim
       X\theta}{var ~ x.var * theta}}
 
+  \item{weight.nk}{individual x factor weights (e.g., celltype proportions)}
+
   \item{x.mean.loc}{p x 1 (optional) genomic location of x variables}
-
   \item{c.mean.loc}{p x 1 (optional) genomic location of c variables}
-
   \item{y.loc}{p x 1 (optional) genomic location of y variables, e.g., TSS}
   \item{y.loc2}{p x 1 (optional) genomic location of y variables, e.g., TES}
   \item{cis.dist}{distance between x and y (default: 5e5)}

@@ -26,6 +26,7 @@
 #include "parameters.hh"
 #include "regression.hh"
 #include "regression_factored.hh"
+#include "regression_factored_weighted.hh"
 #include "residual.hh"
 #include "sgvb_inference.hh"
 #include "shared_effect.hh"
@@ -64,6 +65,9 @@ RcppExport SEXP fqtl_rcpp_train_reg_cis_cis(SEXP y, SEXP x_m, SEXP a_x_m,
 
 RcppExport SEXP fqtl_rcpp_train_freg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
                                      SEXP opt);
+
+RcppExport SEXP fqtl_rcpp_train_fwreg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
+                                      SEXP w, SEXP opt);
 
 RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
                                          SEXP x_v, SEXP opt);
@@ -124,6 +128,14 @@ Rcpp::List rcpp_train_regression_cis_cis(const Mat &yy, const Mat &xx_mean,
 template <typename ModelTag>
 Rcpp::List rcpp_train_factored_regression(const Mat &yy, const Mat &xx_mean,
                                           const Mat &cc_mean, const Mat &xx_var,
+                                          const Rcpp::List &option_list);
+
+// weighted version
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_factored_regression(const Mat &yy, const Mat &xx_mean,
+                                          const Mat &cc_mean, const Mat &xx_var,
+                                          const Mat &weight,
                                           const Rcpp::List &option_list);
 
 template <typename ModelTag>

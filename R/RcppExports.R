@@ -4,14 +4,14 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
                     options.mf = list(),
                     options.reg = list()) {
 
-    n <- dim(y)[1]
-    m <- dim(y)[2]
+    n <- nrow(y)
+    m <- ncol(y)
 
     if(is.null(x.mean)){ x.mean <- matrix(1, nrow=n, ncol=1) }
     if(is.null(x.var)){ x.var <- matrix(1, nrow=n, ncol=1) }
 
-    stopifnot(dim(x.mean)[1] == n)
-    stopifnot(dim(x.var)[1] == n)
+    stopifnot(nrow(x.mean) == n)
+    stopifnot(ncol(x.var)[1] == n)
 
     ## dense y ~ x.mean
     if(is.null(y.loc) || is.null(x.mean.loc)){
@@ -21,7 +21,7 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
     }
 
     ## sparse y ~ x.mean
-    p <- dim(x.mean)[2]
+    p <- ncol(x.mean)
     stopifnot(length(x.mean.loc) == p)
     stopifnot(length(y.loc) == m)
 
@@ -55,27 +55,27 @@ fqtl.mf <- function(y, x.mean = NULL, x.var = NULL, c.mean = NULL,
     }
 
     ## additional (dense) c.mean
-    stopifnot(dim(c.mean)[1] == n)
+    stopifnot(nrow(c.mean) == n)
     return(.Call('fqtl_rcpp_train_mf_cis_aux',
-                 y, x.mean, x.adj.mean, c.mean, x.var,                 
+                 y, x.mean, x.adj.mean, c.mean, x.var,
                  options.mf, options.reg, PACKAGE = 'fqtl'))
 }
 
 fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
                          y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL, c.mean.loc = NULL,
-                         cis.dist = 5e5,
+                         cis.dist = 5e5, weight.nk = NULL,
                          options = list(vbiter=1000, tol=1e-8, gammax=100,
                              rate=0.1, decay=-0.1, pi.ub=-1, pi.lb=-4,
                              tau.lb=-10, tau.ub=-4, verbose=TRUE)) {
 
-    n <- dim(y)[1]
-    m <- dim(y)[2]
+    n <- nrow(y)
+    m <- ncol(y)
 
     if(is.null(c.mean)){ c.mean <- matrix(1, nrow=n, ncol=1) }
     if(is.null(x.var)){ x.var <- matrix(1, nrow=n, ncol=1) }
 
-    stopifnot(dim(x.mean)[1] == n)
-    stopifnot(dim(x.var)[1] == n)
+    stopifnot(nrow(x.mean) == n)
+    stopifnot(nrow(x.var) == n)
 
     if(!requireNamespace('Matrix', quietly = TRUE)){
         print('Matrix package is missing')
@@ -87,8 +87,20 @@ fqtl.regress <- function(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NUL
         return(NULL)
     }
 
+    if(!is.null(weight.nk)) {
+        weighted <- TRUE
+        stopifnot(nrow(weight.nk) == n)
+        if(any(weight.nk < 0)) {
+            print('Removed negative weights!')
+            weight.nk[weight.nk < 0] <- 0
+        }
+    } else {
+        weighted <- FALSE
+    }
 
-    if(factored){
+    if(weighted) {
+        return(.Call('fqtl_rcpp_train_fwreg', PACKAGE = 'fqtl', y, x.mean, c.mean, x.var, weight.nk, options))
+    } else if(factored){
 
         if(is.null(y.loc) || is.null(c.mean.loc)){
             return(.Call('fqtl_rcpp_train_freg', PACKAGE = 'fqtl', y, x.mean, c.mean, x.var, options))

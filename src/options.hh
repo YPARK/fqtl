@@ -30,6 +30,8 @@ struct options_t {
     MF_SVD_INIT = true;
     MF_PRETRAIN = true;
     DO_HYPER = false;
+    MU_MIN = 1e-4;
+    VAR_BETA_MIN = 1e-4;
   }
 
   const unsigned int vbiter() const { return VBITER; };
@@ -56,6 +58,8 @@ struct options_t {
   const unsigned int rseed() const { return RSEED; };
   const bool mf_pretrain() const { return MF_PRETRAIN; }
   const bool do_hyper() const { return DO_HYPER; }
+  const float mu_min() const { return MU_MIN; }
+  const float var_beta_min() const { return VAR_BETA_MIN; }
 
   unsigned int VBITER;
   unsigned int MINITER;
@@ -82,6 +86,9 @@ struct options_t {
   bool MF_SVD_INIT;
   bool MF_PRETRAIN;
   bool DO_HYPER;
+
+  float MU_MIN;
+  float VAR_BETA_MIN;
 
   std::string MODEL_NAME;
   unsigned int RSEED;

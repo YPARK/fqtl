@@ -268,6 +268,44 @@ RcppExport SEXP fqtl_rcpp_train_freg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
   END_RCPP
 }
 
+RcppExport SEXP fqtl_rcpp_train_fwreg(SEXP y, SEXP x_m, SEXP c_m, SEXP x_v,
+                                      SEXP w, SEXP opt) {
+  BEGIN_RCPP
+  Rcpp::RObject __result;
+  Rcpp::RNGScope __rngScope;
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const Mat>::type cc_m(c_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
+  Rcpp::traits::input_parameter<const Mat>::type ww(w);
+  Rcpp::List option_list(opt);
+
+  const auto model = get_model_name(option_list);
+
+  if (model == "nb") {
+    return Rcpp::wrap(rcpp_train_factored_regression<m_nb_tag>(
+        yy, xx_m, cc_m, xx_v, ww, option_list));
+
+  } else if (model == "logit") {
+    return Rcpp::wrap(rcpp_train_factored_regression<m_logit_tag>(
+        yy, xx_m, cc_m, xx_v, ww, option_list));
+
+  } else if (model == "voom") {
+    return Rcpp::wrap(rcpp_train_factored_regression<m_voom_tag>(
+        yy, xx_m, cc_m, xx_v, ww, option_list));
+
+  } else if (model == "beta") {
+    return Rcpp::wrap(rcpp_train_factored_regression<m_beta_tag>(
+        yy, xx_m, cc_m, xx_v, ww, option_list));
+
+  } else {
+    return Rcpp::wrap(rcpp_train_factored_regression<m_gaussian_tag>(
+        yy, xx_m, cc_m, xx_v, ww, option_list));
+  }
+
+  END_RCPP
+}
+
 RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
                                          SEXP x_v, SEXP opt) {
   BEGIN_RCPP
@@ -658,6 +696,89 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
 }
 
 ////////////////////////////////////////////////////////////////
+// mean ~ ((X * U) .* W) * V' + C * theta + theta * Ct
+// var  ~ Xv * theta
+template <typename ModelTag>
+Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
+                                          const Mat &xx_mean,  // n x p -> p x m
+                                          const Mat &cc_mean,  // n x p -> p x m
+                                          const Mat &xx_var,   // n x p
+                                          const Mat &weight,   // n x k
+                                          const Rcpp::List &option_list) {
+  ///////////////////
+  // check options //
+  ///////////////////
+
+  if (yy.cols() < 2) WLOG("Factored regression with 1 output");
+
+  ASSERT_LIST_RET(yy.rows() == xx_mean.rows(),
+                  "yy and xx_mean with different number of rows");
+  ASSERT_LIST_RET(yy.rows() == cc_mean.rows(),
+                  "yy and cc_mean with different number of rows");
+  ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
+                  "yy and xx_var with different number of rows");
+
+  ASSERT_LIST_RET(yy.rows() == weight.rows(),
+                  "yy and weight with different number of rows");
+
+  options_t opt;
+  set_options_from_list(option_list, opt);
+
+  //////////////////////////
+  // construct parameters //
+  //////////////////////////
+
+  const Index p = xx_mean.cols();
+  const Index m = yy.cols();
+  const Index K = weight.cols();
+  TLOG("K = " << K << " columns in the weight matrix");
+
+  auto c_mean_theta =
+      make_dense_spike_slab<Scalar>(cc_mean.cols(), yy.cols(), opt);
+  auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
+
+  auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
+  auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
+
+  auto mf_theta_u = make_dense_spike_slab<Scalar>(p, K, opt);
+  auto mf_theta_v = make_dense_beta<Scalar>(m, K, opt);
+  auto mean_eta = make_factored_weighted_regression_eta(xx_mean, yy, mf_theta_u,
+                                                        mf_theta_v);
+  mean_eta.set_weight_nk(weight);
+
+  if (opt.mf_svd_init()) {
+    mean_eta.init_by_svd(yy, opt.jitter());
+  } else {
+    std::mt19937 rng(opt.rseed());
+    mean_eta.jitter(opt.jitter(), rng);
+  }
+
+  auto model_ptr = make_model<ModelTag>(yy);
+  auto &model = *model_ptr.get();
+
+  auto llik_trace =
+      impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
+                   std::make_tuple(x_var_eta));
+
+  // residual calculation
+  dummy_eta_t dummy;
+  auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
+  if (opt.out_resid()) {
+    auto resid_eta = make_residual_eta(yy, theta_resid);
+    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
+                 std::make_tuple(x_var_eta),
+                 std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+  }
+
+  return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u),
+                            Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
+                            Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
+                            Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
+                            Rcpp::_["llik"] = llik_trace);
+}
+
+////////////////////////////////////////////////////////////////
 // mean ~ X * U * V' + C * theta
 // var  ~ Xv * theta
 template <typename ModelTag>
@@ -936,6 +1057,13 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_spike_slab) {
 }
 
 template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_spike_gamma) {
+  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
+                            Rcpp::_["theta.var"] = var_param(param),
+                            Rcpp::_["lodds"] = log_odds_param(param));
+}
+
+template <typename T>
 Rcpp::List impl_param_rcpp_list(const T &param,
                                 const tag_param_col_spike_slab) {
   return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
@@ -951,6 +1079,12 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_col_slab) {
 
 template <typename T>
 Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab) {
+  return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
+                            Rcpp::_["theta.var"] = var_param(param));
+}
+
+template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_beta) {
   return Rcpp::List::create(Rcpp::_["theta"] = mean_param(param),
                             Rcpp::_["theta.var"] = var_param(param));
 }
