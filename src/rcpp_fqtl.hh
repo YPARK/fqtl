@@ -168,6 +168,9 @@ template <typename T>
 Rcpp::List param_rcpp_list(const T &param);
 
 template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_spike_gamma);
+
+template <typename T>
 Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_spike_slab);
 
 template <typename T>
@@ -178,6 +181,10 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_col_slab);
 
 template <typename T>
 Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab);
+
+template <typename T>
+Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_beta);
+
 
 ////////////////////////////////////////////////////////////////
 

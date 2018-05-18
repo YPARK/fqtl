@@ -658,37 +658,78 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
   auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
   auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
 
-  auto mf_theta_u = make_dense_spike_slab<Scalar>(p, K, opt);
-  auto mf_theta_v = make_dense_spike_slab<Scalar>(m, K, opt);
-  auto mean_eta =
-      make_factored_regression_eta(xx_mean, yy, mf_theta_u, mf_theta_v);
-
-  if (opt.mf_svd_init()) {
-    mean_eta.init_by_svd(yy, opt.jitter());
-  } else {
-    std::mt19937 rng(opt.rseed());
-    mean_eta.jitter(opt.jitter(), rng);
-  }
-
   auto model_ptr = make_model<ModelTag>(yy);
   auto &model = *model_ptr.get();
-
-  auto llik_trace =
-      impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta));
-
-  // residual calculation
   dummy_eta_t dummy;
   auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
-  if (opt.out_resid()) {
-    auto resid_eta = make_residual_eta(yy, theta_resid);
-    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                 std::make_tuple(x_var_eta),
-                 std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+
+  Rcpp::List mf_left;
+  Rcpp::List mf_right;
+  Mat llik_trace;
+
+  if (opt.mf_right_nn()) {
+    /////////////////////////////////
+    // non-negativity on the right //
+    /////////////////////////////////
+
+    auto mf_theta_u = make_dense_spike_slab<Scalar>(p, K, opt);
+    auto mf_theta_v = make_dense_spike_gamma<Scalar>(m, K, opt);
+    auto mean_eta =
+        make_factored_regression_eta(xx_mean, yy, mf_theta_u, mf_theta_v);
+
+    if (opt.mf_svd_init()) {
+      mean_eta.init_by_svd(yy, opt.jitter());
+    } else {
+      std::mt19937 rng(opt.rseed());
+      mean_eta.jitter(opt.jitter(), rng);
+    }
+    llik_trace = impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
+                              std::make_tuple(x_var_eta));
+
+    // residual calculation
+    if (opt.out_resid()) {
+      auto resid_eta = make_residual_eta(yy, theta_resid);
+      impl_fit_eta(
+          model, opt, std::make_tuple(resid_eta), std::make_tuple(x_var_eta),
+          std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+    }
+
+    mf_left = param_rcpp_list(mf_theta_u);
+    mf_right = param_rcpp_list(mf_theta_v);
+
+  } else {
+    //////////////////
+    // regular FQTL //
+    //////////////////
+
+    auto mf_theta_u = make_dense_spike_slab<Scalar>(p, K, opt);
+    auto mf_theta_v = make_dense_spike_slab<Scalar>(m, K, opt);
+    auto mean_eta =
+        make_factored_regression_eta(xx_mean, yy, mf_theta_u, mf_theta_v);
+
+    if (opt.mf_svd_init()) {
+      mean_eta.init_by_svd(yy, opt.jitter());
+    } else {
+      std::mt19937 rng(opt.rseed());
+      mean_eta.jitter(opt.jitter(), rng);
+    }
+    llik_trace = impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
+                              std::make_tuple(x_var_eta));
+
+    // residual calculation
+    if (opt.out_resid()) {
+      auto resid_eta = make_residual_eta(yy, theta_resid);
+      impl_fit_eta(
+          model, opt, std::make_tuple(resid_eta), std::make_tuple(x_var_eta),
+          std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+    }
+
+    mf_left = param_rcpp_list(mf_theta_u);
+    mf_right = param_rcpp_list(mf_theta_v);
   }
 
-  return Rcpp::List::create(Rcpp::_["mean.left"] = param_rcpp_list(mf_theta_u),
-                            Rcpp::_["mean.right"] = param_rcpp_list(mf_theta_v),
+  return Rcpp::List::create(Rcpp::_["mean.left"] = mf_left,
+                            Rcpp::_["mean.right"] = mf_right,
                             Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
                             Rcpp::_["var"] = param_rcpp_list(x_var_theta),
                             Rcpp::_["resid"] = param_rcpp_list(theta_resid),
@@ -1141,6 +1182,9 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
 
   if (_list.containsElementNamed("mf.pretrain"))
     opt.MF_PRETRAIN = Rcpp::as<bool>(_list["mf.pretrain"]);
+
+  if (_list.containsElementNamed("mf.right.nn"))
+    opt.MF_RIGHT_NN = Rcpp::as<bool>(_list["mf.right.nn"]);
 
   if (_list.containsElementNamed("vbiter"))
     opt.VBITER = Rcpp::as<Index>(_list["vbiter"]);

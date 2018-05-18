@@ -1,7 +1,7 @@
 Package: fqtl
 Type: Package
 Title: FQTL
-Version: 1.4.0
+Version: 1.4.1
 Date: 2018-05-15
 Author: Yongjin Park, Abhishek Sarkar, Kunal Butani, Manolis Kellis
 Maintainer: Yongjin Park <ypp@csail.mit.edu>

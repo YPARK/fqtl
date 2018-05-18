@@ -60,6 +60,7 @@ fqtl.regress(y, x.mean, factored = FALSE, c.mean = NULL, x.var = NULL,
   \item{tau.lb}{ lower bound of log-odds of \eqn{\tau_{0}}{tau0} (default: -10)}
   \item{tau.ub}{ upper bound of log-odds of \eqn{\tau_{0}}{tau0} (default: -4)}
   \item{verbose}{ verbosity of SGVB updates (default: TRUE)}
+  \item{mf.right.nn}{ non-negativity on the right factors (default: FALSE)}
 }
 \value{
   \code{fqtl.regress()} returns list of variational parameters

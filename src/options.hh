@@ -29,6 +29,7 @@ struct options_t {
     RSEED = 13;
     MF_SVD_INIT = true;
     MF_PRETRAIN = true;
+    MF_RIGHT_NN = false;
     DO_HYPER = false;
     MU_MIN = 1e-4;
     VAR_BETA_MIN = 1e-4;
@@ -60,6 +61,7 @@ struct options_t {
   const bool do_hyper() const { return DO_HYPER; }
   const float mu_min() const { return MU_MIN; }
   const float var_beta_min() const { return VAR_BETA_MIN; }
+  const bool mf_right_nn() const { return MF_RIGHT_NN; }
 
   unsigned int VBITER;
   unsigned int MINITER;
@@ -86,6 +88,7 @@ struct options_t {
   bool MF_SVD_INIT;
   bool MF_PRETRAIN;
   bool DO_HYPER;
+  bool MF_RIGHT_NN;
 
   float MU_MIN;
   float VAR_BETA_MIN;
