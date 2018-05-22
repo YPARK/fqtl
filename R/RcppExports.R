@@ -177,8 +177,8 @@ read.plink <- function(bed.header) {
     stopifnot(file.exists(bed.file))
 
     ## 1. read .fam and .bim file
-    fam <- read.table(fam.file)
-    bim <- read.table(bim.file)
+    fam <- read.table(fam.file, header = FALSE, stringsAsFactors = FALSE)
+    bim <- read.table(bim.file, header = FALSE, stringsAsFactors = FALSE)
     n <- dim(fam)[1]
     n.snp <- dim(bim)[1]
 
