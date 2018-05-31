@@ -758,7 +758,6 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
                   "yy and cc_mean with different number of rows");
   ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
                   "yy and xx_var with different number of rows");
-
   ASSERT_LIST_RET(yy.rows() == weight.rows(),
                   "yy and weight with different number of rows");
 
@@ -934,6 +933,7 @@ Rcpp::List rcpp_train_regression(const Mat &yy,       // n x m
   auto mean_theta =
       make_dense_spike_slab<Scalar>(xx_mean.cols(), yy.cols(), opt);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
+  mean_eta.init_by_dot(yy, opt.jitter());
 
   auto model_ptr = make_model<ModelTag>(yy);
   auto &model = *model_ptr.get();
