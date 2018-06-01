@@ -250,12 +250,9 @@ struct factored_weighted_regression_t {
     Eigen::JacobiSVD<ReprMatrix> svd(XtY,
                                      Eigen::ComputeThinU | Eigen::ComputeThinV);
     ParamLeftMatrix left = svd.matrixU() * sd;
-    ParamRightMatrix right = svd.matrixV() * sd;
-    right = right * svd.singularValues().asDiagonal();
     ThetaL.beta.setZero();
-    ThetaR.beta.setZero();
     ThetaL.beta.leftCols(k) = left.leftCols(k);
-    ThetaR.beta.leftCols(k) = right.leftCols(k);
+    ThetaR.beta.setConstant(sd);
     resolve_param(ThetaL);
     resolve_param(ThetaR);
     this->resolve();
