@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////
 // To represent non-negative sparse parameters
 //
-// theta ~ alpha * Gamma(mu, 1) + (1 - alpha) direct
+// theta ~ alpha * Gamma(mu, 1) + (1 - alpha) dirac
 //
 // mean = alpha * mu
 // var = alpha * mu + alpha * (1 - alpha) mu^2

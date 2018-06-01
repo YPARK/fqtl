@@ -236,18 +236,14 @@ struct factored_weighted_regression_t {
 
   inline void init_by_svd(const auto &yy, const Scalar sd) {
     ReprMatrix Yin;
-    ReprMatrix Y;
     remove_missing(yy, Yin);
 
-    if (Yin.cols() < k) {
-      ReprMatrix Ymean = Yin * ReprMatrix::Ones(Yin.cols(), 1);
-      Y.resize(Yin.rows(), k);
-      for (Index j = 0; j < k; ++j) {
-        Y.col(j) = Ymean.cwiseProduct(weight_nk.col(j));
-      }
-    } else {
-      Y.resize(Yin.rows(), Yin.cols());
-      Y = Yin;
+    ReprMatrix Ymean =
+        Yin * ReprMatrix::Ones(Yin.cols(), 1) / static_cast<Scalar>(Yin.cols());
+
+    ReprMatrix Y(Yin.rows(), k);
+    for (Index j = 0; j < k; ++j) {
+      Y.col(j) = Ymean.cwiseProduct(weight_nk.col(j));
     }
 
     ReprMatrix XtY = X.transpose() * Y / static_cast<Scalar>(n);
