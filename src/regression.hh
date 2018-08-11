@@ -25,10 +25,10 @@ struct get_regression_type<
   using type = regression_t<DenseReprMat<Scalar>, Param>;
 };
 
-template <typename Param, typename Scalar>
-struct get_regression_type<Param, Scalar, Eigen::SparseMatrix<Scalar>> {
-  using type = regression_t<SparseReprMat<Scalar>, Param>;
-};
+// template <typename Param, typename Scalar>
+// struct get_regression_type<Param, Scalar, Eigen::SparseMatrix<Scalar>> {
+//   using type = regression_t<SparseReprMat<Scalar>, Param>;
+// };
 
 template <typename xDerived, typename yDerived, typename Param>
 auto make_regression_eta(const Eigen::MatrixBase<xDerived> &xx,
@@ -38,14 +38,14 @@ auto make_regression_eta(const Eigen::MatrixBase<xDerived> &xx,
   return Reg(xx.derived(), yy.derived(), theta);
 }
 
-template <typename xDerived, typename yDerived, typename Param>
-auto make_regression_eta(const Eigen::SparseMatrixBase<xDerived> &xx,
-                         const Eigen::SparseMatrixBase<yDerived> &yy,
-                         Param &theta) {
-  using Scalar = typename yDerived::Scalar;
-  using Reg = regression_t<SparseReprMat<Scalar>, Param>;
-  return Reg(xx.derived(), yy.derived(), theta);
-}
+// template <typename xDerived, typename yDerived, typename Param>
+// auto make_regression_eta(const Eigen::SparseMatrixBase<xDerived> &xx,
+//                          const Eigen::SparseMatrixBase<yDerived> &yy,
+//                          Param &theta) {
+//   using Scalar = typename yDerived::Scalar;
+//   using Reg = regression_t<SparseReprMat<Scalar>, Param>;
+//   return Reg(xx.derived(), yy.derived(), theta);
+// }
 
 template <typename xDerived, typename yDerived, typename Param>
 auto make_regression_eta_ptr(const Eigen::MatrixBase<xDerived> &xx,
@@ -56,14 +56,14 @@ auto make_regression_eta_ptr(const Eigen::MatrixBase<xDerived> &xx,
   return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
 }
 
-template <typename xDerived, typename yDerived, typename Param>
-auto make_regression_eta_ptr(const Eigen::SparseMatrixBase<xDerived> &xx,
-                             const Eigen::SparseMatrixBase<yDerived> &yy,
-                             Param &theta) {
-  using Scalar = typename yDerived::Scalar;
-  using Reg = regression_t<SparseReprMat<Scalar>, Param>;
-  return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
-}
+// template <typename xDerived, typename yDerived, typename Param>
+// auto make_regression_eta_ptr(const Eigen::SparseMatrixBase<xDerived> &xx,
+//                              const Eigen::SparseMatrixBase<yDerived> &yy,
+//                              Param &theta) {
+//   using Scalar = typename yDerived::Scalar;
+//   using Reg = regression_t<SparseReprMat<Scalar>, Param>;
+//   return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
+// }
 
 /////////////////////
 // Eta ~ Theta * X //
@@ -81,11 +81,11 @@ struct get_transpose_regression_type<
   using type = transpose_regression_t<DenseReprMat<Scalar>, Param>;
 };
 
-template <typename Param, typename Scalar>
-struct get_transpose_regression_type<Param, Scalar,
-                                     Eigen::SparseMatrix<Scalar>> {
-  using type = transpose_regression_t<SparseReprMat<Scalar>, Param>;
-};
+// template <typename Param, typename Scalar>
+// struct get_transpose_regression_type<Param, Scalar,
+//                                      Eigen::SparseMatrix<Scalar>> {
+//   using type = transpose_regression_t<SparseReprMat<Scalar>, Param>;
+// };
 
 template <typename xDerived, typename yDerived, typename Param>
 auto make_transpose_regression_eta(const Eigen::MatrixBase<xDerived> &xx,
@@ -96,14 +96,14 @@ auto make_transpose_regression_eta(const Eigen::MatrixBase<xDerived> &xx,
   return Reg(xx.derived(), yy.derived(), theta);
 }
 
-template <typename xDerived, typename yDerived, typename Param>
-auto make_transpose_regression_eta(const Eigen::SparseMatrixBase<xDerived> &xx,
-                                   const Eigen::SparseMatrixBase<yDerived> &yy,
-                                   Param &theta) {
-  using Scalar = typename yDerived::Scalar;
-  using Reg = transpose_regression_t<SparseReprMat<Scalar>, Param>;
-  return Reg(xx.derived(), yy.derived(), theta);
-}
+// template <typename xDerived, typename yDerived, typename Param>
+// auto make_transpose_regression_eta(const Eigen::SparseMatrixBase<xDerived> &xx,
+//                                    const Eigen::SparseMatrixBase<yDerived> &yy,
+//                                    Param &theta) {
+//   using Scalar = typename yDerived::Scalar;
+//   using Reg = transpose_regression_t<SparseReprMat<Scalar>, Param>;
+//   return Reg(xx.derived(), yy.derived(), theta);
+// }
 
 template <typename xDerived, typename yDerived, typename Param>
 auto make_transpose_regression_eta_ptr(const Eigen::MatrixBase<xDerived> &xx,
@@ -114,14 +114,14 @@ auto make_transpose_regression_eta_ptr(const Eigen::MatrixBase<xDerived> &xx,
   return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
 }
 
-template <typename xDerived, typename yDerived, typename Param>
-auto make_transpose_regression_eta_ptr(
-    const Eigen::SparseMatrixBase<xDerived> &xx,
-    const Eigen::SparseMatrixBase<yDerived> &yy, Param &theta) {
-  using Scalar = typename yDerived::Scalar;
-  using Reg = transpose_regression_t<SparseReprMat<Scalar>, Param>;
-  return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
-}
+// template <typename xDerived, typename yDerived, typename Param>
+// auto make_transpose_regression_eta_ptr(
+//     const Eigen::SparseMatrixBase<xDerived> &xx,
+//     const Eigen::SparseMatrixBase<yDerived> &yy, Param &theta) {
+//   using Scalar = typename yDerived::Scalar;
+//   using Reg = transpose_regression_t<SparseReprMat<Scalar>, Param>;
+//   return std::make_shared<Reg>(xx.derived(), yy.derived(), theta);
+// }
 
 ////////////////////////////////////////////////////////////////
 // A wrapper for eta = X * Theta -> Y
@@ -138,7 +138,8 @@ struct regression_t {
   using Index = typename param_traits<Param>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit regression_t(const auto &xx, const auto &yy, Param &theta)
+  explicit regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
+                        Param &theta)
       : n(xx.rows()),
         p(xx.cols()),
         m(yy.cols()),
@@ -190,7 +191,7 @@ struct regression_t {
   inline Eigen::Ref<const ReprMatrix> repr_mean() { return Eta.get_mean(); }
   inline Eigen::Ref<const ReprMatrix> repr_var() { return Eta.get_var(); }
 
-  inline void init_by_dot(const ReprMatrix& yy, const Scalar sd) {
+  inline void init_by_dot(const ReprMatrix &yy, const Scalar sd) {
     ReprMatrix Y;
     remove_missing(yy, Y);
     Y = Y / static_cast<Scalar>(n);
@@ -200,7 +201,7 @@ struct regression_t {
     resolve();
   }
 
-  void add_sgd(const auto &llik) { update_repr(Eta, llik); }
+  void add_sgd(const ReprMatrix &llik) { update_repr(Eta, llik); }
 
   void eval_sgd() {
     Eta.summarize();
@@ -244,7 +245,8 @@ struct transpose_regression_t {
   using Index = typename param_traits<Param>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit transpose_regression_t(const auto &xx, const auto &yy, Param &theta)
+  explicit transpose_regression_t(const ReprMatrix &xx, const ReprMatrix &yy,
+                                  Param &theta)
       : n(yy.rows()),
         p(xx.rows()),
         m(xx.cols()),
@@ -306,7 +308,7 @@ struct transpose_regression_t {
     resolve();
   }
 
-  void add_sgd(const auto &llik) { update_repr(Eta, llik); }
+  void add_sgd(const ReprMatrix &llik) { update_repr(Eta, llik); }
 
   void eval_sgd() {
     Eta.summarize();

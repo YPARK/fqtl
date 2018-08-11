@@ -25,11 +25,11 @@ struct get_factorization_type<
   using type = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
 };
 
-template <typename UParam, typename VParam, typename Scalar>
-struct get_factorization_type<UParam, VParam, Scalar,
-                              Eigen::SparseMatrix<Scalar>> {
-  using type = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
-};
+// template <typename UParam, typename VParam, typename Scalar>
+// struct get_factorization_type<UParam, VParam, Scalar,
+//                               Eigen::SparseMatrix<Scalar>> {
+//   using type = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
+// };
 
 template <typename Derived, typename UParam, typename VParam>
 auto make_factorization_eta(const Eigen::MatrixBase<Derived> &data, UParam &u,
@@ -39,13 +39,13 @@ auto make_factorization_eta(const Eigen::MatrixBase<Derived> &data, UParam &u,
   return Fact(data.derived(), u, v);
 }
 
-template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta(const Eigen::SparseMatrixBase<Derived> &data,
-                            UParam &u, VParam &v) {
-  using Scalar = typename Derived::Scalar;
-  using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
-  return Fact(data.derived(), u, v);
-}
+// template <typename Derived, typename UParam, typename VParam>
+// auto make_factorization_eta(const Eigen::SparseMatrixBase<Derived> &data,
+//                             UParam &u, VParam &v) {
+//   using Scalar = typename Derived::Scalar;
+//   using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
+//   return Fact(data.derived(), u, v);
+// }
 
 template <typename Derived, typename UParam, typename VParam>
 auto make_factorization_eta_ptr(const Eigen::MatrixBase<Derived> &data,
@@ -55,13 +55,13 @@ auto make_factorization_eta_ptr(const Eigen::MatrixBase<Derived> &data,
   return std::make_shared<Fact>(data.derived(), u, v);
 }
 
-template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta_ptr(const Eigen::SparseMatrixBase<Derived> &data,
-                                UParam &u, VParam &v) {
-  using Scalar = typename Derived::Scalar;
-  using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
-  return std::make_shared<Fact>(data.derived(), u, v);
-}
+// template <typename Derived, typename UParam, typename VParam>
+// auto make_factorization_eta_ptr(const Eigen::SparseMatrixBase<Derived> &data,
+//                                 UParam &u, VParam &v) {
+//   using Scalar = typename Derived::Scalar;
+//   using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
+//   return std::make_shared<Fact>(data.derived(), u, v);
+// }
 
 template <typename Repr, typename UParam, typename VParam>
 struct factorization_t {
@@ -71,7 +71,7 @@ struct factorization_t {
   using Scalar = typename DataMat::Scalar;
   using Index = typename DataMat::Index;
 
-  explicit factorization_t(const auto &data, UParam &u, VParam &v)
+  explicit factorization_t(const DataMat & data, UParam &u, VParam &v)
       : Eta(make_gaus_repr(data)),
         U(u),
         V(v),
@@ -129,7 +129,7 @@ struct factorization_t {
     resolve();
   }
 
-  inline void init_by_svd(const auto &data, const Scalar sd) {
+  inline void init_by_svd(const DataMat &data, const Scalar sd) {
     Eigen::JacobiSVD<DataMat> svd(data,
                                   Eigen::ComputeThinU | Eigen::ComputeThinV);
     DataMat uu = svd.matrixU() * sd;
@@ -140,7 +140,7 @@ struct factorization_t {
     V.beta.setZero();
     U.beta.leftCols(k) = uu.leftCols(k);
     V.beta.leftCols(k) = vv.leftCols(k);
-      
+
     resolve_param(U);
     resolve_param(V);
     resolve();
@@ -174,7 +174,7 @@ struct factorization_t {
   const auto &repr_mean() { return Eta.get_mean(); }
   const auto &repr_var() { return Eta.get_var(); }
 
-  inline void add_sgd(const auto &llik) { update_repr(Eta, llik); }
+  inline void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
 
   // mean = E[U] * E[V']
   // var  = Var[U] * Var[V'] + E[U]^2 * Var[V'] + Var[U] * E[V']^2

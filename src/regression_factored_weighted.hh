@@ -31,7 +31,8 @@ struct factored_weighted_regression_t {
   using Index = typename param_traits<ParamLeft>::Index;
   using ReprMatrix = typename Repr::DataMatrix;
 
-  explicit factored_weighted_regression_t(const auto &xx, const auto &yy,
+  explicit factored_weighted_regression_t(const ReprMatrix &xx,
+                                          const ReprMatrix &yy,
                                           ParamLeft &thetaL, ParamRight &thetaR)
       : n(xx.rows()),
         p(xx.cols()),
@@ -62,10 +63,10 @@ struct factored_weighted_regression_t {
 #endif
     copy_matrix(ThetaL.theta, NobsL);
     copy_matrix(ThetaR.theta, NobsR);
+    weight_nk.setConstant(max_weight);
 
     // 1. compute Nobs
-    // NobsL = O[X'] * O[Y] * O[R] (p x k)
-    // NobsR = O[Y'] * O[X] * O[L] (m x k)
+    // Need to take into account of weights
     XYZ_nobs(xx.transpose(), yy, ThetaR.theta, NobsL);
     XYZ_nobs(yy.transpose(), xx, ThetaL.theta, NobsR);
 
@@ -110,10 +111,11 @@ struct factored_weighted_regression_t {
   ReprMatrix temp_nk;    // n x k
   ReprMatrix var_nk;     // n x k
   ReprMatrix mean_nk;    // n x k
-  Repr Eta;              // n x m
 
   ReprMatrix weight_nk;  // n x k
   Scalar max_weight;
+
+  Repr Eta;  // n x m
 
   template <typename RNG>
   inline Eigen::Ref<const ReprMatrix> sample(const RNG &rng) {
@@ -123,15 +125,32 @@ struct factored_weighted_regression_t {
   inline Eigen::Ref<const ReprMatrix> repr_mean() { return Eta.get_mean(); }
   inline Eigen::Ref<const ReprMatrix> repr_var() { return Eta.get_var(); }
 
-  inline void add_sgd(const auto &llik) { update_repr(Eta, llik); }
+  inline void add_sgd(const ReprMatrix &llik) { update_repr(Eta, llik); }
 
-  template <typename Derived>
-  void set_weight_nk(const Eigen::MatrixBase<Derived> &_weight) {
+  template <typename Derived1, typename Derived2, typename Derived3>
+  void set_weight_nk(const Eigen::MatrixBase<Derived1> &_weight,
+                     const Eigen::MatrixBase<Derived2> &xx,
+                     const Eigen::MatrixBase<Derived3> &yy) {
     ASSERT(_weight.rows() == n && _weight.cols() == k, "invalid weight matrix");
     weight_nk = _weight.derived();
     const Scalar max_val =
         weight_nk.cwiseAbs().maxCoeff() + static_cast<Scalar>(1e-4);
     if (max_weight < max_val) max_weight = max_val;
+
+    // NobsL = O[X'] * (weight .* (O[Y] * O[R])) -> (p x k)
+    // NobsR = O[Y'] * (weight .* (O[X] * O[L])) -> (m x k)
+
+    ReprMatrix nobs_nk(n, k);
+
+    XY_nobs(yy, ThetaR.theta, nobs_nk);
+    nobs_nk = nobs_nk.cwiseProduct(weight_nk);
+    nobs_nk = nobs_nk.array() + static_cast<Scalar>(1e-4);
+    XtY_nobs(xx, nobs_nk, NobsL);
+
+    XY_nobs(xx, ThetaL.theta, nobs_nk);
+    nobs_nk = nobs_nk.cwiseProduct(weight_nk);
+    nobs_nk = nobs_nk.array() + static_cast<Scalar>(1e-4);
+    XtY_nobs(yy, nobs_nk, NobsR);
   }
 
   // mean = X * E[L] * E[R]'
@@ -162,17 +181,17 @@ struct factored_weighted_regression_t {
   ////////////////////////////////////////////////////////////////////////////////////////////////
   // (1) gradient w.r.t. E[L]
   //     X' * ((G1 * E[R]) .* weight_nk)
-  //     + 2 * X^2' * ((G2 * Var[R]) .* weight_nk) .* E[L]
+  //     + 2 * X^2' * ((G2 * Var[R]) .* weight_nk^2) .* E[L]
   //
   // (2) gradient w.r.t. V[L]
-  //     X^2' * ((G2 * (Var[R] + E[R]^2)). weight_nk)
+  //     X^2' * ((G2 * (Var[R] + E[R]^2)). weight_nk^2)
   //
   // (3) gradient w.r.t. E[R]
   //     G1' * ((X * E[L]) .* weight_nk)
-  //     + 2 * G2' * ((X^2 * Var[L]) .* weight_nk) .* E[R]
+  //     + 2 * G2' * ((X^2 * Var[L]) .* weight_nk^2) .* E[R]
   //
   // (4) gradient w.r.t. V[R]
-  //     G2' * ((X^2 * (Var[L] + E[L]^2)) .* weight_nk)
+  //     G2' * ((X^2 * (Var[L] + E[L]^2)) .* weight_nk^2)
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
   inline void eval_sgd() {
@@ -185,7 +204,8 @@ struct factored_weighted_regression_t {
     // (a) on variance
     times_set(Eta.get_grad_type2(), ThetaR.theta_var,
               temp_nk); /* (n x m) (m x k) = (n x k)  */
-    trans_times_set(Xsq, temp_nk.cwiseProduct(weight_nk),
+    trans_times_set(Xsq,
+                    temp_nk.cwiseProduct(weight_nk).cwiseProduct(weight_nk),
                     G1L);                       /* (n x p)' (n x k) = (p x k) */
     G1L = 2.0 * G1L.cwiseProduct(ThetaL.theta); /* (p x k) */
 
@@ -199,7 +219,8 @@ struct factored_weighted_regression_t {
               temp_nk); /* (n x m) (m x k) = (n x k)  */
     times_add(Eta.get_grad_type2(), thetaRsq,
               temp_nk); /* (n x m) (m x k) = (n x k)  */
-    trans_times_set(Xsq, temp_nk.cwiseProduct(weight_nk),
+    trans_times_set(Xsq,
+                    temp_nk.cwiseProduct(weight_nk).cwiseProduct(weight_nk),
                     G2L); /* (n x p)' (n x k) = (p x k) */
 
     eval_param_sgd(ThetaL, G1L, G2L, NobsL);
@@ -207,7 +228,8 @@ struct factored_weighted_regression_t {
     // (3) update of G1R
     // (a) on varinace
     times_set(Xsq, ThetaL.theta_var, temp_nk); /* (n x p) (p x k) = (n x k) */
-    trans_times_set(Eta.get_grad_type2(), temp_nk.cwiseProduct(weight_nk),
+    trans_times_set(Eta.get_grad_type2(),
+                    temp_nk.cwiseProduct(weight_nk).cwiseProduct(weight_nk),
                     G1R);                       /* (n x m)' (n x k) = (m x k) */
     G1R = 2.0 * G1R.cwiseProduct(ThetaR.theta); /* (m x k) */
 
@@ -219,7 +241,8 @@ struct factored_weighted_regression_t {
     // (4) update of G2R
     times_set(Xsq, ThetaL.theta_var, temp_nk); /* (n x p) (p x k) = (n x k) */
     times_add(Xsq, thetaLsq, temp_nk);         /* (n x p) (p x k) = (n x k) */
-    trans_times_set(Eta.get_grad_type2(), temp_nk.cwiseProduct(weight_nk),
+    trans_times_set(Eta.get_grad_type2(),
+                    temp_nk.cwiseProduct(weight_nk).cwiseProduct(weight_nk),
                     G2R); /* (n x m)' (n x k) = (m x k) */
 
     eval_param_sgd(ThetaR, G1R, G2R, NobsR);
@@ -234,7 +257,7 @@ struct factored_weighted_regression_t {
     this->resolve();
   }
 
-  inline void init_by_svd(const auto &yy, const Scalar sd) {
+  inline void init_by_svd(const ReprMatrix &yy, const Scalar sd) {
     ReprMatrix Yin;
     remove_missing(yy, Yin);
 
@@ -297,12 +320,13 @@ struct get_factored_weighted_regression_type<
                                               ParamRight>;
 };
 
-template <typename ParamLeft, typename ParamRight, typename Scalar>
-struct get_factored_weighted_regression_type<ParamLeft, ParamRight, Scalar,
-                                             Eigen::SparseMatrix<Scalar>> {
-  using type = factored_weighted_regression_t<SparseReprMat<Scalar>, ParamLeft,
-                                              ParamRight>;
-};
+// template <typename ParamLeft, typename ParamRight, typename Scalar>
+// struct get_factored_weighted_regression_type<ParamLeft, ParamRight, Scalar,
+//                                              Eigen::SparseMatrix<Scalar>> {
+//   using type = factored_weighted_regression_t<SparseReprMat<Scalar>,
+//   ParamLeft,
+//                                               ParamRight>;
+// };
 
 template <typename xDerived, typename yDerived, typename ParamLeft,
           typename ParamRight>
@@ -316,17 +340,18 @@ auto make_factored_weighted_regression_eta(
   return Reg(xx.derived(), yy.derived(), thetaL, thetaR);
 }
 
-template <typename xDerived, typename yDerived, typename ParamLeft,
-          typename ParamRight>
-auto make_factored_weighted_regression_eta(
-    const Eigen::SparseMatrixBase<xDerived> &xx,
-    const Eigen::SparseMatrixBase<yDerived> &yy, ParamLeft &thetaL,
-    ParamRight &thetaR) {
-  using Scalar = typename yDerived::Scalar;
-  using Reg = factored_weighted_regression_t<SparseReprMat<Scalar>, ParamLeft,
-                                             ParamRight>;
-  return Reg(xx.derived(), yy.derived(), thetaL, thetaR);
-}
+// template <typename xDerived, typename yDerived, typename ParamLeft,
+//           typename ParamRight>
+// auto make_factored_weighted_regression_eta(
+//     const Eigen::SparseMatrixBase<xDerived> &xx,
+//     const Eigen::SparseMatrixBase<yDerived> &yy, ParamLeft &thetaL,
+//     ParamRight &thetaR) {
+//   using Scalar = typename yDerived::Scalar;
+//   using Reg = factored_weighted_regression_t<SparseReprMat<Scalar>,
+//   ParamLeft,
+//                                              ParamRight>;
+//   return Reg(xx.derived(), yy.derived(), thetaL, thetaR);
+// }
 
 template <typename xDerived, typename yDerived, typename ParamLeft,
           typename ParamRight>
@@ -340,16 +365,17 @@ auto make_factored_weighted_regression_eta_ptr(
   return std::make_shared<Reg>(xx.derived(), yy.derived(), thetaL, thetaR);
 }
 
-template <typename xDerived, typename yDerived, typename ParamLeft,
-          typename ParamRight>
-auto make_factored_weighted_regression_eta_ptr(
-    const Eigen::SparseMatrixBase<xDerived> &xx,
-    const Eigen::SparseMatrixBase<yDerived> &yy, ParamLeft &thetaL,
-    ParamRight &thetaR) {
-  using Scalar = typename yDerived::Scalar;
-  using Reg = factored_weighted_regression_t<SparseReprMat<Scalar>, ParamLeft,
-                                             ParamRight>;
-  return std::make_shared<Reg>(xx.derived(), yy.derived(), thetaL, thetaR);
-}
+  // template <typename xDerived, typename yDerived, typename ParamLeft,
+  //           typename ParamRight>
+  // auto make_factored_weighted_regression_eta_ptr(
+  //     const Eigen::SparseMatrixBase<xDerived> &xx,
+  //     const Eigen::SparseMatrixBase<yDerived> &yy, ParamLeft &thetaL,
+  //     ParamRight &thetaR) {
+  //   using Scalar = typename yDerived::Scalar;
+  //   using Reg = factored_weighted_regression_t<SparseReprMat<Scalar>,
+  //   ParamLeft,
+  //                                              ParamRight>;
+  //   return std::make_shared<Reg>(xx.derived(), yy.derived(), thetaL, thetaR);
+  // }
 
 #endif

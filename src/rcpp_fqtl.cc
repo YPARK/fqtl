@@ -360,6 +360,40 @@ RcppExport SEXP fqtl_adj(SEXP d1, SEXP d2_start, SEXP d2_end, SEXP cis) {
   END_RCPP
 }
 
+RcppExport SEXP fqtl_rcpp_train_deconv(SEXP y, SEXP w, SEXP x_m, SEXP x_v,
+                                       SEXP opt) {
+  BEGIN_RCPP
+  Rcpp::RObject __result;
+  Rcpp::RNGScope __rngScope;
+  Rcpp::traits::input_parameter<const Mat>::type yy(y);
+  Rcpp::traits::input_parameter<const Mat>::type ww(w);
+  Rcpp::traits::input_parameter<const Mat>::type xx_m(x_m);
+  Rcpp::traits::input_parameter<const Mat>::type xx_v(x_v);
+  Rcpp::List option_list(opt);
+
+  const auto model = get_model_name(option_list);
+
+  if (model == "nb") {
+    return Rcpp::wrap(
+        rcpp_train_deconv<m_nb_tag>(yy, ww, xx_m, xx_v, option_list));
+  } else if (model == "logit") {
+    return Rcpp::wrap(
+        rcpp_train_deconv<m_logit_tag>(yy, ww, xx_m, xx_v, option_list));
+  } else if (model == "voom") {
+    return Rcpp::wrap(
+        rcpp_train_deconv<m_voom_tag>(yy, ww, xx_m, xx_v, option_list));
+
+  } else if (model == "beta") {
+    return Rcpp::wrap(
+        rcpp_train_deconv<m_beta_tag>(yy, ww, xx_m, xx_v, option_list));
+  } else {
+    return Rcpp::wrap(
+        rcpp_train_deconv<m_gaussian_tag>(yy, ww, xx_m, xx_v, option_list));
+  }
+
+  END_RCPP
+}
+
 ////////////////////////////
 // Actual implementations //
 ////////////////////////////
@@ -368,6 +402,103 @@ const std::string get_model_name(const Rcpp::List &_list) {
   if (_list.containsElementNamed("model"))
     return Rcpp::as<std::string>(_list["model"]);
   return std::string("gaussian");
+}
+
+////////////////////////////////////////////////////////////////
+// mean ~ U * V' + xx_mean * theta
+// var ~ xx_var * theta
+template <typename ModelTag>
+Rcpp::List rcpp_train_deconv(
+    const Mat &yy,       // n x m
+    const Mat &ww,       // n x k
+    const Mat &xx_mean,  // n x p -> regression -> [n x p] [p x m]
+    const Mat &xx_var,   // n x q -> regression -> [n x q] [q x m]
+    const Rcpp::List &option_list) {
+  //////////////////////
+  // check dimensions //
+  //////////////////////
+
+  ASSERT_LIST_RET(yy.rows() == xx_mean.rows(),
+                  "yy and xx_mean with different number of rows");
+  ASSERT_LIST_RET(yy.rows() == xx_var.rows(),
+                  "yy and xx_var with different number of rows");
+  ASSERT_LIST_RET(yy.rows() == ww.rows(),
+                  "yy and weight with different number of rows");
+
+  options_t opt;
+  set_options_from_list(option_list, opt);
+
+  //////////////////////////
+  // construct parameters //
+  //////////////////////////
+
+  const Index n = yy.rows();
+  const Index m = yy.cols();
+  const Index K = ww.cols();
+  TLOG("K = " << K << " columns in the weight matrix");
+
+  auto x_mean_theta =
+      make_dense_spike_slab<Scalar>(xx_mean.cols(), yy.cols(), opt);
+  auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
+  auto x_mean_eta = make_regression_eta(xx_mean, yy, x_mean_theta);
+  auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
+
+  auto model_ptr = make_model<ModelTag>(yy);
+  auto &model = *model_ptr.get();
+
+  Rcpp::List mf_left;
+  Rcpp::List mf_right;
+  Mat llik_trace;
+
+  auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
+
+  if (opt.mf_right_nn()) {
+    /////////////////////////////////
+    // non-negativity on the right //
+    /////////////////////////////////
+    auto mf_theta_v = make_dense_beta<Scalar>(m, K, opt);
+    auto mf_eta = make_factorization_weighted_eta(yy, mf_theta_u, mf_theta_v);
+    mf_eta.set_weight_nk(ww, yy);
+
+    if (opt.mf_svd_init()) {
+      mf_eta.init_by_svd(yy, opt.jitter());
+    } else {
+      std::mt19937 rng(opt.rseed());
+      mf_eta.jitter(opt.jitter(), rng);
+    }
+
+    llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, x_mean_eta),
+                              std::make_tuple(x_var_eta));
+
+    mf_left = param_rcpp_list(mf_theta_u);
+    mf_right = param_rcpp_list(mf_theta_v);
+  } else {
+    /////////////////
+    // both signed //
+    /////////////////
+
+    auto mf_theta_v = make_dense_slab<Scalar>(m, K, opt);
+    auto mf_eta = make_factorization_weighted_eta(yy, mf_theta_u, mf_theta_v);
+    mf_eta.set_weight_nk(ww, yy);
+
+    if (opt.mf_svd_init()) {
+      mf_eta.init_by_svd(yy, opt.jitter());
+    } else {
+      std::mt19937 rng(opt.rseed());
+      mf_eta.jitter(opt.jitter(), rng);
+    }
+
+    llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, x_mean_eta),
+                              std::make_tuple(x_var_eta));
+
+    mf_left = param_rcpp_list(mf_theta_u);
+    mf_right = param_rcpp_list(mf_theta_v);
+  }
+
+  return Rcpp::List::create(Rcpp::_["U"] = mf_left, Rcpp::_["V"] = mf_right,
+                            Rcpp::_["mean"] = param_rcpp_list(x_mean_theta),
+                            Rcpp::_["var"] = param_rcpp_list(x_var_theta),
+                            Rcpp::_["llik"] = llik_trace);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -797,7 +928,7 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
     auto mf_theta_v = make_dense_beta<Scalar>(m, K, opt);
     auto mean_eta = make_factored_weighted_regression_eta(
         xx_mean, yy, mf_theta_u, mf_theta_v);
-    mean_eta.set_weight_nk(weight);
+    mean_eta.set_weight_nk(weight, xx_mean, yy);
 
     if (opt.mf_svd_init()) {
       mean_eta.init_by_svd(yy, opt.jitter());
@@ -826,7 +957,7 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
     auto mf_theta_v = make_dense_spike_slab<Scalar>(m, K, opt);
     auto mean_eta = make_factored_weighted_regression_eta(
         xx_mean, yy, mf_theta_u, mf_theta_v);
-    mean_eta.set_weight_nk(weight);
+    mean_eta.set_weight_nk(weight, xx_mean, yy);
 
     if (opt.mf_svd_init()) {
       mean_eta.init_by_svd(yy, opt.jitter());
@@ -964,15 +1095,16 @@ Rcpp::List rcpp_train_regression(const Mat &yy,       // n x m
 
   auto c_mean_theta =
       make_dense_spike_slab<Scalar>(cc_mean.cols(), yy.cols(), opt);
-  auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
-
   auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
-  auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
+  c_mean_eta.init_by_dot(yy, opt.jitter());
 
   auto mean_theta =
       make_dense_spike_slab<Scalar>(xx_mean.cols(), yy.cols(), opt);
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
   mean_eta.init_by_dot(yy, opt.jitter());
+
+  auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
+  auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
 
   auto model_ptr = make_model<ModelTag>(yy);
   auto &model = *model_ptr.get();
@@ -1032,6 +1164,7 @@ Rcpp::List rcpp_train_regression_cis(const Mat &yy,          // n x m
   auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
 
   auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
+
   auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
   auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
 
@@ -1224,6 +1357,9 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
 
   if (_list.containsElementNamed("mf.right.nn"))
     opt.MF_RIGHT_NN = Rcpp::as<bool>(_list["mf.right.nn"]);
+
+  if (_list.containsElementNamed("right.nn"))
+    opt.MF_RIGHT_NN = Rcpp::as<bool>(_list["right.nn"]);
 
   if (_list.containsElementNamed("vbiter"))
     opt.VBITER = Rcpp::as<Index>(_list["vbiter"]);

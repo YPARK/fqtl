@@ -18,6 +18,7 @@
 #include "convergence.hh"
 #include "dummy.hh"
 #include "factorization.hh"
+#include "factorization_weighted.hh"
 #include "gaussian.hh"
 #include "gaussian_voom.hh"
 #include "logit.hh"
@@ -74,6 +75,10 @@ RcppExport SEXP fqtl_rcpp_train_freg_cis(SEXP y, SEXP x_m, SEXP c_m, SEXP a_c_m,
 
 RcppExport SEXP fqtl_adj(SEXP d1, SEXP d2_start, SEXP d2_end, SEXP cis);
 
+// Deconvolution routines
+RcppExport SEXP fqtl_rcpp_train_deconv(SEXP y, SEXP w, SEXP x_m, SEXP x_v,
+                                       SEXP opt);
+
 ////////////////////////////
 // Actual implementations //
 ////////////////////////////
@@ -82,6 +87,12 @@ using Mat = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
 using SpMat = Eigen::SparseMatrix<float, Eigen::ColMajor>;
 using Scalar = Mat::Scalar;
 using Index = Mat::Index;
+
+// Deconvolution routines
+
+template <typename ModelTag>
+Rcpp::List rcpp_train_deconv(const Mat &yy, const Mat &ww, const Mat &xx_mean,
+                             const Mat &xx_var, const Rcpp::List &option_list);
 
 // Factorization routines
 template <typename ModelTag>
@@ -184,7 +195,6 @@ Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_slab);
 
 template <typename T>
 Rcpp::List impl_param_rcpp_list(const T &param, const tag_param_beta);
-
 
 ////////////////////////////////////////////////////////////////
 

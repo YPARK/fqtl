@@ -47,13 +47,13 @@ struct tag_param_dense {};
 
 ////////////////////////////////////////////////////////////////
 // include implementations
+#include "param_beta.hh"
 #include "param_col_slab.hh"
 #include "param_col_spike_slab.hh"
 #include "param_row_spike_slab.hh"
 #include "param_slab.hh"
-#include "param_spike_slab.hh"
 #include "param_spike_gamma.hh"
-#include "param_beta.hh"
+#include "param_spike_slab.hh"
 
 template <typename Derived>
 using SparseDeriv = Eigen::SparseMatrixBase<Derived>;

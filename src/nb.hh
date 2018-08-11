@@ -110,8 +110,7 @@ struct nb_model_t {
 
   ////////////////////////////////////////////////////////////////
   struct alpha_op_t {
-    explicit alpha_op_t(const Scalar _amin)
-        : alpha_min(_amin) {}
+    explicit alpha_op_t(const Scalar _amin) : alpha_min(_amin) {}
 
     inline Scalar operator()(const Scalar& x) const {
       return alpha_min + ln1p_exp_op(-x);
