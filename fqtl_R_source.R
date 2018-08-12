@@ -298,7 +298,6 @@ fit.fqtl <- function(y,
 #' @param y [n x m] response matrix
 #' @param weight.nk (non-negative) weight matrix to help factors being mode interpretable
 #' @param model choose an appropriate distribution for the generative model of y matrix from \code{c('gaussian', 'nb', 'logit', 'voom', 'beta')} (default: 'gaussian')
-#' @param k Rank of the factorization (default: 1)
 #' @param svd.init Initalize by SVD (default: TRUE)
 #' @param x.mean [n x p] covariate matrix for mean change (can specify location)
 #' @param x.var [n x r] covariate marix for variance#'
@@ -363,7 +362,7 @@ fit.fqtl <- function(y,
 #' 
 #' opt <- list(tol=1e-8, pi = -0, gammax=1e3, vbiter=10000, out.residual = FALSE,
 #' do.hyper = FALSE, right.nn = TRUE)
-#' out <- fqtl.deconv(Y, prop, options = opt)
+#' out <- fit.fqtl.deconv(Y, prop, options = opt)
 #'
 #' y.decon <- out$U$theta
 #' 
@@ -374,33 +373,33 @@ fit.fqtl <- function(y,
 #'
 #' @export
 #'
-fqtl.deconv <- function(y,
-                        weight.nk,
-                        svd.init = TRUE,
-                        model = c('gaussian', 'nb', 'logit', 'voom', 'beta'),
-                        x.mean = NULL,
-                        x.var = NULL,
-                        right.nn = FALSE,
-                        do.hyper = FALSE,
-                        tau = NULL,
-                        pi = NULL,
-                        tau.lb = -10,
-                        tau.ub = -4,
-                        pi.lb = -4,
-                        pi.ub = -1,
-                        tol = 1e-4,
-                        gammax = 1e3,
-                        rate = 1e-2,
-                        decay = 0,
-                        jitter = 1e-1,
-                        nsample = 10,
-                        vbiter = 2000,
-                        verbose = TRUE,                        
-                        mu.min = 1e-2,
-                        print.interv = 10,
-                        nthread = 1,
-                        rseed = NULL,
-                        options = list()) {
+fit.fqtl.deconv <- function(y,
+                            weight.nk,
+                            svd.init = TRUE,
+                            model = c('gaussian', 'nb', 'logit', 'voom', 'beta'),
+                            x.mean = NULL,
+                            x.var = NULL,
+                            right.nn = FALSE,
+                            do.hyper = FALSE,
+                            tau = NULL,
+                            pi = NULL,
+                            tau.lb = -10,
+                            tau.ub = -4,
+                            pi.lb = -4,
+                            pi.ub = -1,
+                            tol = 1e-4,
+                            gammax = 1e3,
+                            rate = 1e-2,
+                            decay = 0,
+                            jitter = 1e-1,
+                            nsample = 10,
+                            vbiter = 2000,
+                            verbose = TRUE,                        
+                            mu.min = 1e-2,
+                            print.interv = 10,
+                            nthread = 1,
+                            rseed = NULL,                            
+                            options = list()) {
 
 
     model <- match.arg(model)
@@ -420,7 +419,7 @@ fqtl.deconv <- function(y,
     ## parse options
     opt.vars <- c('do.hyper', 'tau', 'pi', 'tau.lb', 'svd.init',
                   'tau.ub', 'pi.lb', 'pi.ub', 'tol', 'gammax', 'rate', 'decay',
-                  'jitter', 'nsample', 'vbiter', 'verbose', 'k', 'mu.min',
+                  'jitter', 'nsample', 'vbiter', 'verbose', 'mu.min',
                   'print.interv', 'nthread', 'rseed', 'model')
 
     for(v in opt.vars) {
