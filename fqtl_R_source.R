@@ -419,7 +419,7 @@ fit.fqtl.deconv <- function(y,
     ## parse options
     opt.vars <- c('do.hyper', 'tau', 'pi', 'tau.lb', 'svd.init',
                   'tau.ub', 'pi.lb', 'pi.ub', 'tol', 'gammax', 'rate', 'decay',
-                  'jitter', 'nsample', 'vbiter', 'verbose', 'mu.min',
+                  'jitter', 'nsample', 'vbiter', 'verbose', 'right.nn', 'mu.min',
                   'print.interv', 'nthread', 'rseed', 'model')
 
     for(v in opt.vars) {
