@@ -3,10 +3,11 @@ Type: Package
 Title: FQTL
 Version: 1.4.2
 Date: 2018-08-11
-Author: Yongjin Park, Abhishek Sarkar, Kunal Butani, Manolis Kellis
+Author: Yongjin Park, Abhishek Sarkar, Kunal Bhutani, Manolis Kellis
 Maintainer: Yongjin Park <ypp@csail.mit.edu>
 Description: Factored QTL estimation
 License: LICENSE
 Imports: Rcpp (>= 0.12.6), RcppEigen (>= 0.3.2.9.0), RcppProgress (>= 0.2.1), Matrix, methods
 LinkingTo: Rcpp, RcppEigen, RcppProgress
 RoxygenNote: 6.1.0
+SystemRequirements: C++14

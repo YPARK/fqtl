@@ -14,22 +14,22 @@ Install R package:
 
 ```
 library(devtools)
-library(Rcpp)
 install_github("ypark/fqtl")
 ```
 
-C++ codes were implemented with C++14.  Please include `-std=c++14` in
-`CFLAGS` and `CXXFLAGS` of `~/.R/Makevars` file.
+To successfully compile the Rcpp code, `R` must have been compiled with a
+compiler which supports C++14. If you get the following error when installing:
 
-For instance,
 ```
-CFLAGS = -O3 -std=c++14
-CXXFLAGS = -O3 -std=c++14
+Error in .shlib_internal(args) : 
+  C++14 standard requested but CXX14 is not defined
 ```
+
+you must recompile `R` with a compiler that supports C++14 (for example, `GCC
+>= 5.0`).
 
 To speed up matrix-vector multiplication and vectorized random number
-generation, one can compile the package with _Intel MKL_ library or
-_openblas_.
+generation, one can compile the package with _Intel MKL_ or _openblas_.
 
 ## Results
 
