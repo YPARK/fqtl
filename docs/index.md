@@ -25,8 +25,7 @@ Error in .shlib_internal(args) :
   C++14 standard requested but CXX14 is not defined
 ```
 
-you must recompile `R` with a compiler that supports C++14 (for example, `GCC
->= 5.0`).
+you must recompile `R` with a compiler that supports C++14 (for example, `GCC >= 5.0`).
 
 To speed up matrix-vector multiplication and vectorized random number
 generation, one can compile the package with _Intel MKL_ or _openblas_.
