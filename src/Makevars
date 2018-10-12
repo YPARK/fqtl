@@ -1,0 +1,2 @@
+PKG_CXXFLAGS = -g -O3 -fopenmp -Wno-ignored-attributes
+PKG_LIBS = -fopenmp
