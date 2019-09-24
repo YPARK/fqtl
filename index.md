@@ -18,14 +18,16 @@ install_github("ypark/fqtl")
 ```
 
 To successfully compile the Rcpp code, `R` must have been compiled with a
-compiler which supports C++14. If you get the following error when installing:
+compiler which supports C++14. Make sure your R development environment support `C++14` by including
+`-std=c++14` to `CFLAGS` and `CXXFLAGS` in `~/.R/Makevars` file.
+For instance,
 
 ```
-Error in .shlib_internal(args) : 
-  C++14 standard requested but CXX14 is not defined
+CXX = g++-6
+CXX14 = g++-6
+CXXFLAGS = -O3 -std=c++14
+CFLAGS = -O3 -std=c++14
 ```
-
-you must recompile `R` with a compiler that supports C++14 (for example, `GCC >= 5.0`).
 
 To speed up matrix-vector multiplication and vectorized random number
 generation, one can compile the package with _Intel MKL_ or _openblas_.
@@ -45,8 +47,8 @@ tissues (v6p) can be found in separate repository.
 In Park and Sarkar _et al._ we define mean, variance and log-likelihood:
 
 ```
-E[y] = eta1,
-V[y] = Vmin + (Vmax - Vmin) * sigmoid(eta2)
+E[y] = η1,
+V[y] = Vmin + (Vmax - Vmin) * sigmoid(η2)
 L[y] = -0.5 * (y - E[y])^2 / V[y] - 0.5 * ln V[y]
 ```
 
@@ -61,77 +63,53 @@ negative binomial models for analysis of high-throughput sequencing
 data.
 
 ```
-b[y] = exp(- eta1)
-E[y] = exp(X theta1 + ln (1 + 1/phi))
-V[y] = E[y] * (1 + E[y] / (1 + 1/phi))
+b[y] = exp(- η1)
+E[y] = exp(Xθ + ln (1 + 1/φ))
+V[y] = E[y] * (1 + E[y] / (1 + 1/φ))
 
-L[y] = ln Gam(y + 1/phi + 1) - ln Gam(1/phi + 1)
-       - y * ln(1 + exp(- eta1))
-       - (1/phi + 1) * ln(1 + exp(eta1))
+L[y] = ln Gam(y + 1/φ + 1) - ln Gam(1/φ + 1)
+       - y * ln(1 + exp(- η1))
+       - (1/φ + 1) * ln(1 + exp(η1))
 ```
 
-Like Gaussian model, we could bound variance model `V[y] < observed
-V[y]`.  Probably most loosened model fit to the data is sample mean
-`Ybar`.  If there were no association of covariates, sample mean
-would be unbiased estimation of rate parameter of the underlying
-Poisson distribution.
+Like Gaussian model, we could bound variance model `V[y] < observed V[y]`.  Probably most loosened model fit to the data is sample mean `Ybar`.  If there were no association of covariates, sample mean would be unbiased estimation of rate parameter of the underlying Poisson distribution.
 
 ```
-worst_variance = Ybar * (1 + Ybar /(1 + 1/phi))
-               < Ybar * (1 + Ybar * phi)
+worst variance = Ybar * (1 + Ybar /(1 + 1/φ))
+               < Ybar * (1 + Ybar * φ)
                < Vobs
 ```
 
-Therefore we can claim:
+Therefore we can claim that
 
 ```
-phi_max = (Vobs / Ybar - 1) / Ybar
+φmax = (Vobs / Ybar - 1) / Ybar
 ```
 
 
 ### Negative binomial model (redefined with psuedo-count)
 
-$$p(y|\alpha,\beta) = \frac{\Gamma(\alpha + y + a_{0})}{\Gamma(y+1)\Gamma(\alpha + a_{0})}
-\left(\frac{1}{1 + 1/\beta}\right)^{\alpha + a_{0}}
-\left(\frac{1}{1 + \beta}\right)^{y}$$
+We define negative binomial model adding pseudo-counts.
 
-$\mathbb{E}[y|\alpha,a_{0},\beta] = (\alpha + a_{0})/\beta$
+```
+p(y|α,β) = Γ(α + υ + α0)/[Γ(y+1)Γ(α + α0)] (1 + 1/β)^-(α + α0) (1 + β)^-y
+```
 
-$\mathbb{V}[y|\alpha,a_{0},\beta] = (\alpha + a_{0})/\beta + (\alpha + a_{0})/\beta^{2}$
+where
 
-$\mu = (a_{0} + 1/\phi) / \beta = \exp\left\{ \eta_{\mu} + \ln (a_{0} + 1/\phi) \right\}$
+```
+E[y|α,α0,β] = (α + α0)/β
 
-$\sigma^{2} = \mu + \mu^{2} / (a_{0} + \alpha)$
+V[y|α,α0,β] = (α + α0)β + (α + α0)β^{2}
 
-$\alpha = \alpha_{\min} + (\alpha_{\max} - \alpha_{\min}) \boldsymbol{\sigma}\!\left( - \eta_{\nu} \right)$
+μ = (α0 + 1/φ) / β = exp[ η{μ} + ln (α0 + 1/φ) ]
 
-$\beta = \exp(-\eta_{\mu})$
+σ^2 = μ + μ^{2} / (α0 + α)
 
----
+α = αmin + (αmax - αmin) sigmoid(- η(nu))
 
-$$\ln p(y|\alpha,\beta) = \ln \frac{\Gamma(\alpha + y + a_{0})}{\Gamma(y+1)\Gamma(\alpha + a_{0})}
-- (\alpha + a_{0}) \ln \left(1 + 1/\beta\right)
-- y \ln \left(1 + \beta\right)$$
-
-
-$$-(\alpha + a_{0}) \ln(1 + \exp[\eta_{\mu}])$$
-
-$$-y \ln(1 + \exp[-\eta_{\mu}])$$
-
-
-
----
-
-$\bar{y} + \bar{y}^{2} / (a_{0} + \alpha) < \hat{\sigma}^{2}$
-
-$1 / (a_{0} + \alpha) < (\hat{\sigma}^{2} / \bar{y} - 1)/ \bar{y}$
-
-$a_{0} + \alpha > \bar{y} / (\hat{\sigma}^{2} / \bar{y} - 1)$
-
-$\alpha > \bar{y} / (\hat{\sigma}^{2} / \bar{y} - 1) - a_{0}$
-
-We can simply set $\alpha_{\max} = \hat{\sigma}^{2}$
-
+β = exp(-η(μ))
+```
 
 ### Voom model
 
@@ -140,9 +118,9 @@ They derived mean-variance relationship of the transformed random
 variable by the Delta method.  We reparameterized the model as follows.
 
 ```
-E[y] = eta1,
-V[y] = exp(- eta1) + phi
-phi  = phi_min + (phi_max - phi_min) * sigmoid(eta2)
+E[y] = η1,
+V[y] = exp(- η1) + φ
+φ  = φmin + (φmax - φmin) * sigmoid(η2)
 ```
 
 ## Statistical inference

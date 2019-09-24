@@ -8,11 +8,12 @@ fit.fqtl(y, x.mean, factored = FALSE, svd.init = TRUE,
   model = c("gaussian", "nb", "logit", "voom", "beta"), c.mean = NULL,
   x.var = NULL, y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
   c.mean.loc = NULL, cis.dist = 1e+06, weight.nk = NULL,
-  do.hyper = FALSE, tau = NULL, pi = NULL, tau.lb = -10, tau.ub = -4,
-  pi.lb = -4, pi.ub = -1, tol = 1e-04, gammax = 1000, rate = 0.01,
-  decay = 0, jitter = 0.1, nsample = 10, vbiter = 2000,
-  verbose = TRUE, k = 1, right.nn = FALSE, mu.min = 0.01,
-  print.interv = 10, nthread = 1, rseed = NULL, options = list())
+  do.hyper = FALSE, tau = NULL, pi = NULL, tau.lb = -10,
+  tau.ub = -4, pi.lb = -4, pi.ub = -1, tol = 1e-04,
+  gammax = 1000, rate = 0.01, decay = 0, jitter = 0.1,
+  nsample = 10, vbiter = 2000, verbose = TRUE, k = 1,
+  right.nn = FALSE, mu.min = 0.01, print.interv = 10, nthread = 1,
+  rseed = NULL, options = list())
 }
 \arguments{
 \item{y}{[n x m] response matrix}
@@ -73,7 +74,7 @@ fit.fqtl(y, x.mean, factored = FALSE, svd.init = TRUE,
 
 \item{k}{Rank of the factored model (default: 1)}
 
-\item{right.nn}{non-negativity in factored effect (default: FALSE)}
+\item{right.nn}{non-negativity on the right side of the factored effect (default: FALSE)}
 
 \item{mu.min}{mininum non-negativity weight (default: 0.01)}
 

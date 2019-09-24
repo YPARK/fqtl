@@ -1098,35 +1098,70 @@ Rcpp::List rcpp_train_regression(const Mat &yy,       // n x m
   auto c_mean_eta = make_regression_eta(cc_mean, yy, c_mean_theta);
   c_mean_eta.init_by_dot(yy, opt.jitter());
 
-  auto mean_theta =
-      make_dense_spike_slab<Scalar>(xx_mean.cols(), yy.cols(), opt);
-  auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
-  mean_eta.init_by_dot(yy, opt.jitter());
-
   auto x_var_theta = make_dense_slab<Scalar>(xx_var.cols(), yy.cols(), opt);
   auto x_var_eta = make_regression_eta(xx_var, yy, x_var_theta);
 
   auto model_ptr = make_model<ModelTag>(yy);
   auto &model = *model_ptr.get();
 
-  auto llik_trace =
-      impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
-                   std::make_tuple(x_var_eta));
-
-  // residual calculation
   dummy_eta_t dummy;
+  Mat llik_trace;
+
+  Rcpp::List mean_coeff_out;
+  Rcpp::List resid_out;
+
   auto theta_resid = make_dense_col_slab<Scalar>(yy.rows(), yy.cols(), opt);
-  if (opt.out_resid()) {
-    auto resid_eta = make_residual_eta(yy, theta_resid);
-    impl_fit_eta(model, opt, std::make_tuple(resid_eta),
-                 std::make_tuple(x_var_eta),
-                 std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+
+  /////////////////////////////////
+  // non-negativity on the right //
+  /////////////////////////////////
+
+  if (opt.mf_right_nn()) {
+    auto mean_theta =
+        make_dense_spike_gamma<Scalar>(xx_mean.cols(), yy.cols(), opt);
+
+    auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
+    mean_eta.init_by_dot(yy, opt.jitter());
+
+    llik_trace = impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
+                              std::make_tuple(x_var_eta));
+
+    // residual calculation
+    if (opt.out_resid()) {
+      auto resid_eta = make_residual_eta(yy, theta_resid);
+      impl_fit_eta(
+          model, opt, std::make_tuple(resid_eta), std::make_tuple(x_var_eta),
+          std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+    }
+    mean_coeff_out = param_rcpp_list(mean_theta);
+
+  } else {
+    auto mean_theta =
+        make_dense_spike_slab<Scalar>(xx_mean.cols(), yy.cols(), opt);
+    auto mean_eta = make_regression_eta(xx_mean, yy, mean_theta);
+    mean_eta.init_by_dot(yy, opt.jitter());
+
+    llik_trace = impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
+                              std::make_tuple(x_var_eta));
+
+    // residual calculation
+    if (opt.out_resid()) {
+      auto resid_eta = make_residual_eta(yy, theta_resid);
+      impl_fit_eta(
+          model, opt, std::make_tuple(resid_eta), std::make_tuple(x_var_eta),
+          std::make_tuple(mean_eta, c_mean_eta), std::make_tuple(dummy));
+    }
+    mean_coeff_out = param_rcpp_list(mean_theta);
   }
 
-  return Rcpp::List::create(Rcpp::_["mean"] = param_rcpp_list(mean_theta),
+  if (opt.out_resid()) {
+    resid_out = param_rcpp_list(theta_resid);
+  }
+
+  return Rcpp::List::create(Rcpp::_["mean"] = mean_coeff_out,
                             Rcpp::_["mean.cov"] = param_rcpp_list(c_mean_theta),
                             Rcpp::_["var"] = param_rcpp_list(x_var_theta),
-                            Rcpp::_["resid"] = param_rcpp_list(theta_resid),
+                            Rcpp::_["resid"] = resid_out,
                             Rcpp::_["llik"] = llik_trace);
 }
 

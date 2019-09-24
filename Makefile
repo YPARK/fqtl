@@ -17,3 +17,9 @@ R/RcppExports.R: fqtl_R_source.R
 
 check: $(PKG)_$(VER).tar.gz
 	R CMD check $<
+
+install: $(PKG)_$(VER).tar.gz
+	R CMD INSTALL $< 
+
+site:
+	R -e "pkgdown::build_site()"

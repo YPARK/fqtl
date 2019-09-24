@@ -26,7 +26,7 @@
 #' 
 #' @param model choose an appropriate distribution for the generative model of y matrix from \code{c('gaussian', 'nb', 'logit', 'voom', 'beta')} (default: 'gaussian')
 #' @param weight.nk (non-negative) weight matrix to help factors being mode interpretable
-#' @param right.nn non-negativity in factored effect (default: FALSE)
+#' @param right.nn non-negativity on the right side of the factored effect (default: FALSE)
 #' @param mu.min mininum non-negativity weight (default: 0.01)
 #' 
 #' @param c.mean [n x q] secondary covariate matrix for mean change (dense)
