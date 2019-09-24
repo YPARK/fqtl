@@ -27,6 +27,7 @@ CXX = g++-6
 CXX14 = g++-6
 CXXFLAGS = -O3 -std=c++14
 CFLAGS = -O3 -std=c++14
+PKG_LDFLAGS = -Wl,--no-as-needed
 ```
 
 To speed up matrix-vector multiplication and vectorized random number
