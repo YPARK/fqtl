@@ -452,6 +452,8 @@ Rcpp::List rcpp_train_deconv(
 
   auto mf_theta_u = make_dense_col_spike_slab<Scalar>(n, K, opt);
 
+  const Scalar beta_logit_init = opt.beta_logit_init();
+
   if (opt.mf_right_nn()) {
     /////////////////////////////////
     // non-negativity on the right //
@@ -466,6 +468,11 @@ Rcpp::List rcpp_train_deconv(
       std::mt19937 rng(opt.rseed());
       mf_eta.jitter(opt.jitter(), rng);
     }
+
+    // Down-weight initial beta logit
+    mf_theta_v.beta.setConstant(beta_logit_init);
+    resolve_param(mf_theta_v);
+    mf_eta.resolve();
 
     llik_trace = impl_fit_eta(model, opt, std::make_tuple(mf_eta, x_mean_eta),
                               std::make_tuple(x_var_eta));
@@ -798,6 +805,8 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
   Rcpp::List mf_right;
   Mat llik_trace;
 
+  const Scalar beta_logit_init = opt.beta_logit_init();
+
   if (opt.mf_right_nn()) {
     /////////////////////////////////
     // non-negativity on the right //
@@ -814,6 +823,12 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
       std::mt19937 rng(opt.rseed());
       mean_eta.jitter(opt.jitter(), rng);
     }
+
+    // Down-weight initial beta logit
+    mf_theta_v.beta.setConstant(beta_logit_init);
+    resolve_param(mf_theta_v);
+    mean_eta.resolve();
+
     llik_trace = impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
                               std::make_tuple(x_var_eta));
 
@@ -920,6 +935,8 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
   Rcpp::List mf_right;
   Mat llik_trace;
 
+  const Scalar beta_logit_init = opt.beta_logit_init();
+
   if (opt.mf_right_nn()) {
     /////////////////////////////////
     // non-negativity on the right //
@@ -936,6 +953,12 @@ Rcpp::List rcpp_train_factored_regression(const Mat &yy,       // n x m
       std::mt19937 rng(opt.rseed());
       mean_eta.jitter(opt.jitter(), rng);
     }
+
+    // Down-weight initial beta logit
+    mf_theta_v.beta.setConstant(beta_logit_init);
+    resolve_param(mf_theta_v);
+    mean_eta.resolve();
+
     llik_trace = impl_fit_eta(model, opt, std::make_tuple(mean_eta, c_mean_eta),
                               std::make_tuple(x_var_eta));
 
@@ -1421,6 +1444,9 @@ void set_options_from_list(const Rcpp::List &_list, options_t &opt) {
   if (_list.containsElementNamed("pi")) {
     opt.PI_LODDS_LB = Rcpp::as<Scalar>(_list["pi"]);
     opt.PI_LODDS_UB = Rcpp::as<Scalar>(_list["pi"]);
+  }
+  if (_list.containsElementNamed("beta.logit.init")) {
+    opt.BETA_LOGIT_INIT = Rcpp::as<Scalar>(_list["beta.logit.init"]);
   }
 }
 

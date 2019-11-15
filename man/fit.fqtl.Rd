@@ -119,11 +119,11 @@ p <- 200
 
 theta.left <- matrix(sign(rnorm(3)), 3, 1)
 theta.right <- matrix(sign(rnorm(3)), 1, 3)
-theta <- theta.left \\\%*\\\% theta.right
+theta <- theta.left \%*\% theta.right
 
 X <- matrix(rnorm(n * p), n, p)
 Y <- matrix(rnorm(n * m), n, m) * 0.1
-Y[,1:3] <- Y[,1:3] + X[, 1:3] \\\%*\\\% theta
+Y[,1:3] <- Y[,1:3] + X[, 1:3] \%*\% theta
 
 ## Factored regression
 opt <- list(tol=1e-8, pi.ub=-1, gammax=1e3, vbiter=1500, out.residual=FALSE, do.hyper = TRUE)
@@ -167,7 +167,7 @@ eta <- matrix(nrow = n, ncol = K)
 for(k in 1:K) {
   causal.k <- sample(p, 3)
   causal <- rbind(causal, data.frame(causal.k, k = k))
-  eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] \\\%*\\\% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
+  eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] \%*\% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
 }
 
 ## randomly sample cell type proportions from Dirichlet

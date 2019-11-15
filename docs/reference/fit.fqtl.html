@@ -8,11 +8,13 @@
 
 <title>Variational inference of (factored) regression. — fit.fqtl • fqtl</title>
 
+
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <!-- Bootstrap -->
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous" />
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script>
 
 <!-- Font Awesome icons -->
@@ -32,10 +34,11 @@
 
 
 
-<meta property="og:title" content="Variational inference of (factored) regression. — fit.fqtl" />
 
+<meta property="og:title" content="Variational inference of (factored) regression. — fit.fqtl" />
 <meta property="og:description" content="Variational inference of (factored) regression." />
 <meta name="twitter:card" content="summary" />
+
 
 
 
@@ -82,7 +85,6 @@
   <a href="../reference/index.html">Reference</a>
 </li>
       </ul>
-      
       <ul class="nav navbar-nav navbar-right">
         
       </ul>
@@ -104,9 +106,7 @@
     </div>
 
     <div class="ref-description">
-    
     <p>Variational inference of (factored) regression.</p>
-    
     </div>
 
     <pre class="usage"><span class='fu'>fit.fqtl</span>(<span class='no'>y</span>, <span class='no'>x.mean</span>, <span class='kw'>factored</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>svd.init</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
@@ -119,7 +119,7 @@
   <span class='kw'>nsample</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>vbiter</span> <span class='kw'>=</span> <span class='fl'>2000</span>, <span class='kw'>verbose</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>k</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>right.nn</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>mu.min</span> <span class='kw'>=</span> <span class='fl'>0.01</span>, <span class='kw'>print.interv</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>nthread</span> <span class='kw'>=</span> <span class='fl'>1</span>,
   <span class='kw'>rseed</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>())</pre>
-    
+
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
@@ -264,11 +264,10 @@
       <td><p>A combined list of inference/optimization options</p></td>
     </tr>
     </table>
-    
+
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>a list of variational inference results</p>
-    
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Estimate factored or non-factored SNP x gene / tissue multivariate
@@ -281,20 +280,93 @@ $$\mathsf{E}[Y] = X \theta + C \theta_{\mathsf{cov}}$$</p>
 $$\mathsf{V}[Y] = X_{\mathsf{var}} \theta_{\mathsf{var}}$$</p>
 <p>Each element of mean coefficient matrix follows spike-slab prior;
 variance coefficients follow Gaussian distribution.</p>
-    
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"></pre>
+    <pre class="examples"><div class='input'>
+<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>fqtl</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/library.html'>require</a></span>(<span class='no'>Matrix</span>)</div><div class='output co'>#&gt; <span class='message'>Loading required package: Matrix</span></div><div class='input'>
+<span class='no'>n</span> <span class='kw'>&lt;-</span> <span class='fl'>100</span>
+<span class='no'>m</span> <span class='kw'>&lt;-</span> <span class='fl'>50</span>
+<span class='no'>p</span> <span class='kw'>&lt;-</span> <span class='fl'>200</span>
+
+<span class='no'>theta.left</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/sign.html'>sign</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='fl'>3</span>)), <span class='fl'>3</span>, <span class='fl'>1</span>)
+<span class='no'>theta.right</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/sign.html'>sign</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='fl'>3</span>)), <span class='fl'>1</span>, <span class='fl'>3</span>)
+<span class='no'>theta</span> <span class='kw'>&lt;-</span> <span class='no'>theta.left</span> <span class='kw'>%*%</span> <span class='no'>theta.right</span>
+
+<span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span> * <span class='no'>p</span>), <span class='no'>n</span>, <span class='no'>p</span>)
+<span class='no'>Y</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span> * <span class='no'>m</span>), <span class='no'>n</span>, <span class='no'>m</span>) * <span class='fl'>0.1</span>
+<span class='no'>Y</span>[,<span class='fl'>1</span>:<span class='fl'>3</span>] <span class='kw'>&lt;-</span> <span class='no'>Y</span>[,<span class='fl'>1</span>:<span class='fl'>3</span>] + <span class='no'>X</span>[, <span class='fl'>1</span>:<span class='fl'>3</span>] <span class='kw'>%*%</span> <span class='no'>theta</span>
+
+<span class='co'>## Factored regression</span>
+<span class='no'>opt</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>tol</span><span class='kw'>=</span><span class='fl'>1e-8</span>, <span class='kw'>pi.ub</span><span class='kw'>=</span>-<span class='fl'>1</span>, <span class='kw'>gammax</span><span class='kw'>=</span><span class='fl'>1e3</span>, <span class='kw'>vbiter</span><span class='kw'>=</span><span class='fl'>1500</span>, <span class='kw'>out.residual</span><span class='kw'>=</span><span class='fl'>FALSE</span>, <span class='kw'>do.hyper</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+<span class='no'>out</span> <span class='kw'>&lt;-</span> <span class='fu'>fit.fqtl</span>(<span class='no'>Y</span>, <span class='no'>X</span>, <span class='kw'>factored</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>k</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='no'>opt</span>)
+<span class='no'>k</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/dim.html'>dim</a></span>(<span class='no'>out</span>$<span class='no'>mean.left</span>$<span class='no'>lodds</span>)[<span class='fl'>2</span>]
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/image.html'>image</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/Matrix/man/Matrix.html'>Matrix</a></span>(<span class='no'>out</span>$<span class='no'>mean.left</span>$<span class='no'>theta</span>[<span class='fl'>1</span>:<span class='fl'>20</span>,]))</div><div class='img'><img src='fit.fqtl-1.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/graphics/image.html'>image</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/Matrix/man/Matrix.html'>Matrix</a></span>(<span class='no'>out</span>$<span class='no'>mean.right</span>$<span class='no'>theta</span>))</div><div class='img'><img src='fit.fqtl-2.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='co'>## Full regression (testing sparse coeff)</span>
+<span class='no'>out</span> <span class='kw'>&lt;-</span> <span class='fu'>fit.fqtl</span>(<span class='no'>Y</span>, <span class='no'>X</span>, <span class='kw'>factored</span><span class='kw'>=</span><span class='fl'>FALSE</span>, <span class='kw'>y.loc</span><span class='kw'>=</span><span class='fl'>1</span>:<span class='no'>m</span>, <span class='kw'>x.mean.loc</span><span class='kw'>=</span><span class='fl'>1</span>:<span class='no'>p</span>, <span class='kw'>cis.dist</span><span class='kw'>=</span><span class='fl'>5</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='no'>opt</span>)
+<span class='fu'><a href='https://rdrr.io/r/graphics/image.html'>image</a></span>(<span class='no'>out</span>$<span class='no'>mean</span>$<span class='no'>theta</span>[<span class='fl'>1</span>:<span class='fl'>50</span>,])</div><div class='img'><img src='fit.fqtl-3.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='co'>## Test NB regression</span>
+<span class='no'>rho</span> <span class='kw'>&lt;-</span> <span class='fl'>1</span>/(<span class='fl'>1</span> + <span class='fu'><a href='https://rdrr.io/r/base/Log.html'>exp</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/vector.html'>as.vector</a></span>(-<span class='fu'><a href='https://rdrr.io/r/base/scale.html'>scale</a></span>(<span class='no'>Y</span>))))
+<span class='no'>Y.nb</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>sapply</a></span>(<span class='no'>rho</span>, <span class='no'>rnbinom</span>, <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>size</span> <span class='kw'>=</span> <span class='fl'>10</span>), <span class='kw'>nrow</span> <span class='kw'>=</span> <span class='no'>n</span>, <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='no'>m</span>)
+<span class='no'>R</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/apply.html'>apply</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/Log.html'>log</a></span>(<span class='fl'>1</span> + <span class='no'>Y.nb</span>), <span class='fl'>2</span>, <span class='no'>mean</span>)
+<span class='no'>Y.nb</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/sweep.html'>sweep</a></span>(<span class='no'>Y.nb</span>, <span class='fl'>2</span>, <span class='fu'><a href='https://rdrr.io/r/base/Log.html'>exp</a></span>(<span class='no'>R</span>), <span class='no'>`/`</span>)
+
+<span class='no'>opt</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>tol</span><span class='kw'>=</span><span class='fl'>1e-8</span>, <span class='kw'>pi.ub</span><span class='kw'>=</span>-<span class='fl'>1</span>, <span class='kw'>gammax</span><span class='kw'>=</span><span class='fl'>1e3</span>, <span class='kw'>vbiter</span><span class='kw'>=</span><span class='fl'>1500</span>, <span class='kw'>model</span> <span class='kw'>=</span> <span class='st'>'nb'</span>, <span class='kw'>out.residual</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>k</span> <span class='kw'>=</span> <span class='fl'>10</span>, <span class='kw'>do.hyper</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>)
+<span class='no'>out</span> <span class='kw'>&lt;-</span> <span class='fu'>fit.fqtl</span>(<span class='no'>Y.nb</span>, <span class='no'>X</span>, <span class='kw'>factored</span><span class='kw'>=</span><span class='fl'>TRUE</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='no'>opt</span>)
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/image.html'>image</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/Matrix/man/Matrix.html'>Matrix</a></span>(<span class='no'>out</span>$<span class='no'>mean.left</span>$<span class='no'>theta</span>[<span class='fl'>1</span>:<span class='fl'>20</span>,]))</div><div class='img'><img src='fit.fqtl-4.png' alt='' width='700' height='433' /></div><div class='input'><span class='fu'><a href='https://rdrr.io/r/graphics/image.html'>image</a></span>(<span class='fu'><a href='https://rdrr.io/pkg/Matrix/man/Matrix.html'>Matrix</a></span>(<span class='no'>out</span>$<span class='no'>mean.right</span>$<span class='no'>theta</span>))</div><div class='img'><img src='fit.fqtl-5.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='co'>## Simulate weighted factored regression (e.g., cell-type fraction)</span>
+
+<span class='no'>n</span> <span class='kw'>&lt;-</span> <span class='fl'>600</span>
+<span class='no'>p</span> <span class='kw'>&lt;-</span> <span class='fl'>1000</span>
+<span class='no'>h2</span> <span class='kw'>&lt;-</span> <span class='fl'>0.5</span>
+
+<span class='no'>X</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span> * <span class='no'>p</span>), <span class='no'>n</span>, <span class='no'>p</span>)
+<span class='no'>Y</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='no'>n</span> * <span class='fl'>1</span>), <span class='no'>n</span>, <span class='fl'>1</span>) * <span class='fu'><a href='https://rdrr.io/r/base/MathFun.html'>sqrt</a></span>(<span class='fl'>1</span> - <span class='no'>h2</span>)
+
+<span class='co'>## construct cell type specific genetic activities</span>
+<span class='no'>K</span> <span class='kw'>&lt;-</span> <span class='fl'>3</span>
+
+<span class='no'>causal</span> <span class='kw'>&lt;-</span> <span class='kw'>NULL</span>
+<span class='no'>eta</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='kw'>nrow</span> <span class='kw'>=</span> <span class='no'>n</span>, <span class='kw'>ncol</span> <span class='kw'>=</span> <span class='no'>K</span>)
+
+<span class='kw'>for</span>(<span class='no'>k</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='no'>K</span>) {
+  <span class='no'>causal.k</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/sample.html'>sample</a></span>(<span class='no'>p</span>, <span class='fl'>3</span>)
+  <span class='no'>causal</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>rbind</a></span>(<span class='no'>causal</span>, <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span>(<span class='no'>causal.k</span>, <span class='kw'>k</span> <span class='kw'>=</span> <span class='no'>k</span>))
+  <span class='no'>eta</span>[, <span class='no'>k</span>] <span class='kw'>&lt;-</span> <span class='no'>eta.k</span> <span class='kw'>&lt;-</span> <span class='no'>X</span>[, <span class='no'>causal.k</span>, <span class='kw'>drop</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>] <span class='kw'>%*%</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='fl'>3</span>, <span class='fl'>1</span>) / <span class='fu'><a href='https://rdrr.io/r/base/MathFun.html'>sqrt</a></span>(<span class='fl'>3</span>), <span class='fl'>3</span>, <span class='fl'>1</span>)
+}
+
+<span class='co'>## randomly sample cell type proportions from Dirichlet</span>
+<span class='no'>rdir</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>(<span class='no'>alpha</span>) {
+  <span class='no'>ret</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>sapply</a></span>(<span class='no'>alpha</span>, <span class='no'>rbeta</span>, <span class='kw'>n</span> <span class='kw'>=</span> <span class='fl'>1</span>, <span class='kw'>shape2</span> <span class='kw'>=</span> <span class='fl'>1</span>)
+  <span class='no'>ret</span> <span class='kw'>&lt;-</span> <span class='no'>ret</span> / <span class='fu'><a href='https://rdrr.io/r/base/sum.html'>sum</a></span>(<span class='no'>ret</span>)
+  <span class='fu'><a href='https://rdrr.io/r/base/function.html'>return</a></span>(<span class='no'>ret</span>)
+}
+
+<span class='no'>prop</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/t.html'>t</a></span>(<span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>sapply</a></span>(<span class='fl'>1</span>:<span class='no'>n</span>, <span class='kw'>function</span>(<span class='no'>j</span>) <span class='fu'>rdir</span>(<span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>1</span>, <span class='no'>K</span>))))
+<span class='no'>eta.sum</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/apply.html'>apply</a></span>(<span class='no'>eta</span> * <span class='no'>prop</span>, <span class='fl'>1</span>, <span class='no'>sum</span>)
+<span class='no'>Y</span> <span class='kw'>&lt;-</span> <span class='no'>Y</span> + <span class='no'>eta.sum</span> * <span class='fu'><a href='https://rdrr.io/r/base/MathFun.html'>sqrt</a></span>(<span class='no'>h2</span>)
+
+<span class='no'>opt</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span>(<span class='kw'>tol</span><span class='kw'>=</span><span class='fl'>1e-8</span>, <span class='kw'>pi</span> <span class='kw'>=</span> -<span class='fl'>0</span>, <span class='kw'>gammax</span><span class='kw'>=</span><span class='fl'>1e3</span>, <span class='kw'>vbiter</span><span class='kw'>=</span><span class='fl'>10000</span>, <span class='kw'>out.residual</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>do.hyper</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)
+<span class='no'>out</span> <span class='kw'>&lt;-</span> <span class='fu'>fit.fqtl</span>(<span class='kw'>y</span> <span class='kw'>=</span> <span class='no'>Y</span>, <span class='kw'>x.mean</span> <span class='kw'>=</span> <span class='no'>X</span>, <span class='kw'>weight.nk</span> <span class='kw'>=</span> <span class='no'>prop</span>, <span class='kw'>right.nn</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>options</span> <span class='kw'>=</span> <span class='no'>opt</span>)
+
+<span class='fu'><a href='https://rdrr.io/r/graphics/par.html'>par</a></span>(<span class='kw'>mfrow</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>1</span>, <span class='no'>K</span>))
+<span class='kw'>for</span>(<span class='no'>.k</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='no'>K</span>) {
+  <span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span>(<span class='no'>out</span>$<span class='no'>mean.left</span>$<span class='no'>lodds</span>[, <span class='no'>.k</span>])
+  <span class='no'>ck</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/subset.html'>subset</a></span>(<span class='no'>causal</span>, <span class='no'>k</span> <span class='kw'>==</span> <span class='no'>.k</span>)$<span class='no'>causal.k</span>
+  <span class='fu'><a href='https://rdrr.io/r/graphics/points.html'>points</a></span>(<span class='no'>ck</span>, <span class='no'>out</span>$<span class='no'>mean.left</span>$<span class='no'>lodds</span>[<span class='no'>ck</span>, <span class='no'>.k</span>], <span class='kw'>col</span> <span class='kw'>=</span> <span class='fl'>2</span>, <span class='kw'>pch</span> <span class='kw'>=</span> <span class='fl'>19</span>)
+}</div><div class='img'><img src='fit.fqtl-6.png' alt='' width='700' height='433' /></div><div class='input'>
+
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-      
       <li><a href="#value">Value</a></li>
-
       <li><a href="#details">Details</a></li>
-      
       <li><a href="#examples">Examples</a></li>
     </ul>
 

@@ -33,6 +33,7 @@ struct options_t {
     DO_HYPER = false;
     MU_MIN = 1e-4;
     VAR_BETA_MIN = 1e-4;
+    BETA_LOGIT_INIT = -3.0;
   }
 
   const unsigned int vbiter() const { return VBITER; };
@@ -62,6 +63,7 @@ struct options_t {
   const float mu_min() const { return MU_MIN; }
   const float var_beta_min() const { return VAR_BETA_MIN; }
   const bool mf_right_nn() const { return MF_RIGHT_NN; }
+  const float beta_logit_init() const { return BETA_LOGIT_INIT; }
 
   unsigned int VBITER;
   unsigned int MINITER;
@@ -92,6 +94,7 @@ struct options_t {
 
   float MU_MIN;
   float VAR_BETA_MIN;
+  float BETA_LOGIT_INIT;
 
   std::string MODEL_NAME;
   unsigned int RSEED;

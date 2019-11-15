@@ -91,7 +91,7 @@ eta <- matrix(nrow = n, ncol = K)
 for(k in 1:K) {
   causal.k <- sample(p, 3)
   causal <- rbind(causal, data.frame(causal.k, k = k))
-  eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] \\\%*\\\% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
+  eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] \%*\% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
 }
 
 ## randomly sample cell type proportions from Dirichlet

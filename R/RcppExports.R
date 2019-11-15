@@ -72,11 +72,11 @@
 #'
 #' theta.left <- matrix(sign(rnorm(3)), 3, 1)
 #' theta.right <- matrix(sign(rnorm(3)), 1, 3)
-#' theta <- theta.left \%*\% theta.right
+#' theta <- theta.left %*% theta.right
 #'
 #' X <- matrix(rnorm(n * p), n, p)
 #' Y <- matrix(rnorm(n * m), n, m) * 0.1
-#' Y[,1:3] <- Y[,1:3] + X[, 1:3] \%*\% theta
+#' Y[,1:3] <- Y[,1:3] + X[, 1:3] %*% theta
 #'
 #' ## Factored regression
 #' opt <- list(tol=1e-8, pi.ub=-1, gammax=1e3, vbiter=1500, out.residual=FALSE, do.hyper = TRUE)
@@ -120,7 +120,7 @@
 #' for(k in 1:K) {
 #'   causal.k <- sample(p, 3)
 #'   causal <- rbind(causal, data.frame(causal.k, k = k))
-#'   eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] \%*\% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
+#'   eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] %*% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
 #' }
 #' 
 #' ## randomly sample cell type proportions from Dirichlet
@@ -346,7 +346,7 @@ fit.fqtl <- function(y,
 #' for(k in 1:K) {
 #'   causal.k <- sample(p, 3)
 #'   causal <- rbind(causal, data.frame(causal.k, k = k))
-#'   eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] \%*\% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
+#'   eta[, k] <- eta.k <- X[, causal.k, drop = FALSE] %*% matrix(rnorm(3, 1) / sqrt(3), 3, 1)
 #' }
 #' 
 #' ## randomly sample cell type proportions from Dirichlet
@@ -504,8 +504,8 @@ fit.fqtl.deconv <- function(y,
 #'  p.true <- 3
 #'  theta.true <- matrix(sign(rnorm(1:p.true)), p.true, 1)
 #'  X <- matrix(rnorm(n * p), n, p)
-#'  y.resid <- X[,1:p.true] \%*\% theta.true
-#'  y <- u \%*\% t(v) + 0.5 * matrix(rnorm(n * m), n, m)
+#'  y.resid <- X[,1:p.true] %*% theta.true
+#'  y <- u %*% t(v) + 0.5 * matrix(rnorm(n * m), n, m)
 #'  y[,1] <- y[,1] + y.resid
 #'  y <- scale(y)
 #'  x.v <- matrix(1, n, 1)

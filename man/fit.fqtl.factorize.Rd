@@ -111,8 +111,8 @@ Correct hidden confounders lurking in expression matrix using low-rank
  p.true <- 3
  theta.true <- matrix(sign(rnorm(1:p.true)), p.true, 1)
  X <- matrix(rnorm(n * p), n, p)
- y.resid <- X[,1:p.true] \\\%*\\\% theta.true
- y <- u \\\%*\\\% t(v) + 0.5 * matrix(rnorm(n * m), n, m)
+ y.resid <- X[,1:p.true] \%*\% theta.true
+ y <- u \%*\% t(v) + 0.5 * matrix(rnorm(n * m), n, m)
  y[,1] <- y[,1] + y.resid
  y <- scale(y)
  x.v <- matrix(1, n, 1)
