@@ -4,15 +4,39 @@
 \alias{fit.fqtl.factorize}
 \title{Variational inference of matrix factorization}
 \usage{
-fit.fqtl.factorize(y, k = 1, svd.init = TRUE, model = c("gaussian",
-  "nb", "logit", "voom", "beta"), x.mean = NULL, c.mean = NULL,
-  x.var = NULL, y.loc = NULL, y.loc2 = NULL, x.mean.loc = NULL,
-  cis.dist = 1e+06, do.hyper = FALSE, tau = NULL, pi = NULL,
-  tau.lb = -10, tau.ub = -4, pi.lb = -4, pi.ub = -1, tol = 1e-04,
-  gammax = 1000, rate = 0.01, decay = 0, jitter = 0.1,
-  nsample = 10, vbiter = 2000, verbose = TRUE, print.interv = 10,
-  nthread = 1, rseed = NULL, options.mf = list(),
-  options.reg = list())
+fit.fqtl.factorize(
+  y,
+  k = 1,
+  svd.init = TRUE,
+  model = c("gaussian", "nb", "logit", "voom", "beta"),
+  x.mean = NULL,
+  c.mean = NULL,
+  x.var = NULL,
+  y.loc = NULL,
+  y.loc2 = NULL,
+  x.mean.loc = NULL,
+  cis.dist = 1e+06,
+  do.hyper = FALSE,
+  tau = NULL,
+  pi = NULL,
+  tau.lb = -10,
+  tau.ub = -4,
+  pi.lb = -4,
+  pi.ub = -1,
+  tol = 1e-04,
+  gammax = 1000,
+  rate = 0.01,
+  decay = 0,
+  jitter = 0.1,
+  nsample = 10,
+  vbiter = 2000,
+  verbose = TRUE,
+  print.interv = 10,
+  nthread = 1,
+  rseed = NULL,
+  options.mf = list(),
+  options.reg = list()
+)
 }
 \arguments{
 \item{y}{[n x m] response matrix}

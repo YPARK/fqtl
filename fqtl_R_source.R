@@ -222,7 +222,7 @@ fit.fqtl <- function(y,
     if(!is.null(weight.nk)) {
         weighted <- TRUE
         stopifnot(nrow(weight.nk) == n)
-        if(any(weight.nk < 0)) {
+        if(any(weight.nk < 0, na.rm=TRUE)) {
             print('Removed negative weights!')
             weight.nk[weight.nk < 0] <- 0
         }

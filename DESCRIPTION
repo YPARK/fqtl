@@ -9,5 +9,5 @@ Description: Factored QTL estimation
 License: LICENSE
 Imports: Rcpp (>= 0.12.6), RcppEigen (>= 0.3.2.9.0), RcppProgress (>= 0.2.1), Matrix, methods
 LinkingTo: Rcpp, RcppEigen, RcppProgress
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.2
 SystemRequirements: C++14
