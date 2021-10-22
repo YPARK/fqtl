@@ -132,23 +132,28 @@ struct factored_weighted_regression_t {
                      const Eigen::MatrixBase<Derived2> &xx,
                      const Eigen::MatrixBase<Derived3> &yy) {
     ASSERT(_weight.rows() == n && _weight.cols() == k, "invalid weight matrix");
-    weight_nk = _weight.derived();
+
+    temp_nk = _weight.derived();  // may contain nan
+    remove_missing(temp_nk, weight_nk);
+
     const Scalar max_val =
         weight_nk.cwiseAbs().maxCoeff() + static_cast<Scalar>(1e-4);
+
     if (max_weight < max_val) max_weight = max_val;
 
     // NobsL = O[X'] * (weight .* (O[Y] * O[R])) -> (p x k)
     // NobsR = O[Y'] * (weight .* (O[X] * O[L])) -> (m x k)
 
+    is_obs_op<ReprMatrix> op;
     ReprMatrix nobs_nk(n, k);
 
     XY_nobs(yy, ThetaR.theta, nobs_nk);
-    nobs_nk = nobs_nk.cwiseProduct(weight_nk);
+    nobs_nk = nobs_nk.cwiseProduct(weight_nk.unaryExpr(op));
     nobs_nk = nobs_nk.array() + static_cast<Scalar>(1e-4);
     XtY_nobs(xx, nobs_nk, NobsL);
 
     XY_nobs(xx, ThetaL.theta, nobs_nk);
-    nobs_nk = nobs_nk.cwiseProduct(weight_nk);
+    nobs_nk = nobs_nk.cwiseProduct(weight_nk.unaryExpr(op));
     nobs_nk = nobs_nk.array() + static_cast<Scalar>(1e-4);
     XtY_nobs(yy, nobs_nk, NobsR);
   }
@@ -365,17 +370,17 @@ auto make_factored_weighted_regression_eta_ptr(
   return std::make_shared<Reg>(xx.derived(), yy.derived(), thetaL, thetaR);
 }
 
-  // template <typename xDerived, typename yDerived, typename ParamLeft,
-  //           typename ParamRight>
-  // auto make_factored_weighted_regression_eta_ptr(
-  //     const Eigen::SparseMatrixBase<xDerived> &xx,
-  //     const Eigen::SparseMatrixBase<yDerived> &yy, ParamLeft &thetaL,
-  //     ParamRight &thetaR) {
-  //   using Scalar = typename yDerived::Scalar;
-  //   using Reg = factored_weighted_regression_t<SparseReprMat<Scalar>,
-  //   ParamLeft,
-  //                                              ParamRight>;
-  //   return std::make_shared<Reg>(xx.derived(), yy.derived(), thetaL, thetaR);
-  // }
+// template <typename xDerived, typename yDerived, typename ParamLeft,
+//           typename ParamRight>
+// auto make_factored_weighted_regression_eta_ptr(
+//     const Eigen::SparseMatrixBase<xDerived> &xx,
+//     const Eigen::SparseMatrixBase<yDerived> &yy, ParamLeft &thetaL,
+//     ParamRight &thetaR) {
+//   using Scalar = typename yDerived::Scalar;
+//   using Reg = factored_weighted_regression_t<SparseReprMat<Scalar>,
+//   ParamLeft,
+//                                              ParamRight>;
+//   return std::make_shared<Reg>(xx.derived(), yy.derived(), thetaL, thetaR);
+// }
 
 #endif
