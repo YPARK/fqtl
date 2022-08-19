@@ -81,16 +81,11 @@ auto impl_fit_eta(Model &model, const Opt &opt,
 
   auto resolve_eta = [&](auto &&eta) { eta.resolve(); };
 
-  auto sample_mean_eta = [&](auto &&eta) {
-    mean_sampled = mean_sampled + eta.sample(rng);
-  };
+  auto sample_mean_eta = [&](auto &&eta) { mean_sampled += eta.sample(rng); };
 
-  auto sample_var_eta = [&](auto &&eta) {
-    var_sampled = var_sampled + eta.sample(rng);
-  };
+  auto sample_var_eta = [&](auto &&eta) { var_sampled += eta.sample(rng); };
 
   auto update_sgd_eta = [&](auto &&eta) {
-
     for (Index s = 0; s < nstoch; ++s) {
       mean_sampled.setZero();
       var_sampled.setZero();
