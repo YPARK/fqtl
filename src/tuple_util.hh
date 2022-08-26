@@ -22,26 +22,32 @@ void func_apply(Func &&func, std::tuple<Ts...> &&tup);
 // 1. recurse
 template <typename Func, typename Tuple, unsigned N>
 struct func_apply_impl_t {
-  static void run(Func &&f, Tuple &&tup) {
-    std::forward<Func>(f)(std::get<N>(std::forward<Tuple>(tup)));
-    func_apply_impl_t<Func, Tuple, N - 1>::run(std::forward<Func>(f),
-                                               std::forward<Tuple>(tup));
-  }
+    static void run(Func &&f, Tuple &&tup)
+    {
+        std::forward<Func>(f)(std::get<N>(std::forward<Tuple>(tup)));
+        func_apply_impl_t<Func, Tuple, N - 1>::run(std::forward<Func>(f),
+                                                   std::forward<Tuple>(tup));
+    }
 };
 
 // 2. basecase
 template <typename Func, typename Tuple>
 struct func_apply_impl_t<Func, Tuple, 0> {
-  static void run(Func &&f, Tuple &&tup) {
-    std::forward<Func>(f)(std::get<0>(std::forward<Tuple>(tup)));
-  }
+    static void run(Func &&f, Tuple &&tup)
+    {
+        std::forward<Func>(f)(std::get<0>(std::forward<Tuple>(tup)));
+    }
 };
 
 template <typename Func, typename... Ts>
-void func_apply(Func &&f, std::tuple<Ts...> &&tup) {
-  using Tuple = std::tuple<Ts...>;
-  func_apply_impl_t<Func, Tuple, sizeof...(Ts) - 1>::run(
-      std::forward<Func>(f), std::forward<Tuple>(tup));
+void
+func_apply(Func &&f, std::tuple<Ts...> &&tup)
+{
+    using Tuple = std::tuple<Ts...>;
+    func_apply_impl_t<Func, Tuple, sizeof...(Ts) - 1>::run(std::forward<Func>(
+                                                               f),
+                                                           std::forward<Tuple>(
+                                                               tup));
 }
 
 #endif

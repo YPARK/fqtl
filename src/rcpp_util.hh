@@ -15,18 +15,25 @@
 
 std::string curr_time();
 
-#define TLOG(msg) \
-  { Rcpp::Rcerr << "[" << curr_time() << "] " << msg << std::endl; }
-#define ELOG(msg) \
-  { Rcpp::Rcerr << "[Error] [" << curr_time() << "] " << msg << std::endl; }
-#define WLOG(msg) \
-  { Rcpp::Rcerr << "[Warning] [" << curr_time() << "] " << msg << std::endl; }
-#define ASSERT(cond, msg)             \
-  {                                   \
-    if (!(cond)) {                    \
-      ELOG(msg);                      \
-      Rcpp::stop("assertion failed"); \
-    }                                 \
-  }
+#define TLOG(msg)                                                      \
+    {                                                                  \
+        Rcpp::Rcerr << "[" << curr_time() << "] " << msg << std::endl; \
+    }
+#define ELOG(msg)                                                              \
+    {                                                                          \
+        Rcpp::Rcerr << "[Error] [" << curr_time() << "] " << msg << std::endl; \
+    }
+#define WLOG(msg)                                                  \
+    {                                                              \
+        Rcpp::Rcerr << "[Warning] [" << curr_time() << "] " << msg \
+                    << std::endl;                                  \
+    }
+#define ASSERT(cond, msg)                   \
+    {                                       \
+        if (!(cond)) {                      \
+            ELOG(msg);                      \
+            Rcpp::stop("assertion failed"); \
+        }                                   \
+    }
 
 #endif

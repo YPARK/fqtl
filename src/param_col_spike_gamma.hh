@@ -1,5 +1,5 @@
-#ifndef PARAM_SPIKE_GAMMA_HH_
-#define PARAM_SPIKE_GAMMA_HH_
+#ifndef PARAM_COL_SPIKE_GAMMA_HH_
+#define PARAM_COL_SPIKE_GAMMA_HH_
 
 ////////////////////////////////////////////////////////////////
 // To represent non-negative sparse parameters
@@ -20,34 +20,39 @@
 //
 
 template <typename T, typename S>
-struct param_spike_gamma_t {
+struct param_col_spike_gamma_t {
     typedef T data_t;
     typedef typename T::Scalar scalar_t;
     typedef typename T::Index index_t;
     typedef adam_t<T, scalar_t> grad_adam_t;
-    typedef tag_param_spike_gamma sgd_tag;
+    typedef tag_param_col_spike_gamma sgd_tag;
     typedef S sparsity_tag;
 
+    using Dense = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
+
     template <typename Opt>
-    explicit param_spike_gamma_t(const index_t n1,
-                                 const index_t n2,
-                                 const Opt &opt)
+    explicit param_col_spike_gamma_t(const index_t n1,
+                                     const index_t n2,
+                                     const Opt &opt)
         : nrow(n1)
         , ncol(n2)
+        , onesN1(1, n1)
         , alpha(nrow, ncol)
         , alpha_aux(nrow, ncol)
+        , alpha_aux_col(1, ncol)
         , mu(nrow, ncol)
         , beta(nrow, ncol)
         , theta(nrow, ncol)
         , theta_var(nrow, ncol)
         , grad_alpha_aux(nrow, ncol)
+        , grad_alpha_aux_col(1, ncol)
         , grad_beta(nrow, ncol)
         , pi_aux(0.0)
         , r_m(opt.rate_m())
         , r_v(opt.rate_v())
         , pi_lodds_lb(opt.pi_lodds_lb())
         , pi_lodds_ub(opt.pi_lodds_ub())
-        , adam_alpha_aux(r_m, r_v, nrow, ncol)
+        , adam_alpha_aux_col(r_m, r_v, 1, ncol)
         , adam_beta(r_m, r_v, nrow, ncol)
         , adam_pi_aux(r_m, r_v)
         , resolve_spike_op(pi_aux)
@@ -63,8 +68,11 @@ struct param_spike_gamma_t {
     const index_t nrow;
     const index_t ncol;
 
+    Dense onesN1;
+
     T alpha;
     T alpha_aux;
+    T alpha_aux_col; // [1 x ncol]
     T mu;
     T beta;
 
@@ -72,6 +80,7 @@ struct param_spike_gamma_t {
     T theta_var;
 
     T grad_alpha_aux;
+    T grad_alpha_aux_col; // [1 x ncol]
     T grad_beta;
 
     scalar_t pi_val;
@@ -86,7 +95,7 @@ struct param_spike_gamma_t {
 
     ////////////////////////////////////////////////////////////////
     // adaptive gradient
-    grad_adam_t adam_alpha_aux;
+    grad_adam_t adam_alpha_aux_col;
     grad_adam_t adam_beta;
     adam_t<scalar_t, scalar_t> adam_pi_aux;
 
@@ -214,7 +223,7 @@ struct param_spike_gamma_t {
 // clear contents
 template <typename Parameter>
 void
-impl_initialize_param(Parameter &P, const tag_param_spike_gamma)
+impl_initialize_param(Parameter &P, const tag_param_col_spike_gamma)
 {
     setConstant(P.beta, 0.0);
     setConstant(P.mu, 0.0);
@@ -223,6 +232,7 @@ impl_initialize_param(Parameter &P, const tag_param_spike_gamma)
 
     // Start from most relaxed
     P.pi_aux = P.pi_lodds_ub;
+    setConstant(P.alpha_aux_col, 0.0);
     setConstant(P.alpha_aux, 0.0);
     P.grad_pi_aux = 0.0;
 }
@@ -230,13 +240,13 @@ impl_initialize_param(Parameter &P, const tag_param_spike_gamma)
 // factory functions
 template <typename scalar_t, typename Index, typename Opt>
 auto
-make_dense_spike_gamma(const Index n1, const Index n2, const Opt &opt)
+make_dense_col_spike_gamma(const Index n1, const Index n2, const Opt &opt)
 {
     using Mat = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
-    using Param = param_spike_gamma_t<Mat, tag_param_dense>;
+    using Param = param_col_spike_gamma_t<Mat, tag_param_dense>;
 
     Param ret(n1, n2, opt);
-    impl_initialize_param(ret, tag_param_spike_gamma());
+    impl_initialize_param(ret, tag_param_col_spike_gamma());
     resolve_param(ret);
     resolve_hyperparam(ret);
 
@@ -246,14 +256,14 @@ make_dense_spike_gamma(const Index n1, const Index n2, const Opt &opt)
 // factory functions
 template <typename scalar_t, typename Index, typename Opt>
 auto
-make_dense_spike_gamma_ptr(const Index n1, const Index n2, const Opt &opt)
+make_dense_col_spike_gamma_ptr(const Index n1, const Index n2, const Opt &opt)
 {
     using Mat = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
-    using Param = param_spike_gamma_t<Mat, tag_param_dense>;
+    using Param = param_col_spike_gamma_t<Mat, tag_param_dense>;
 
     auto ret_ptr = std::make_shared<Param>(n1, n2, opt);
     Param &ret = *ret_ptr.get();
-    impl_initialize_param(ret, tag_param_spike_gamma());
+    impl_initialize_param(ret, tag_param_col_spike_gamma());
     resolve_param(ret);
     resolve_hyperparam(ret);
 
@@ -263,17 +273,22 @@ make_dense_spike_gamma_ptr(const Index n1, const Index n2, const Opt &opt)
 // initialize non-zeroness by adjacency A
 template <typename scalar_t, typename Derived, typename Opt>
 auto
-make_sparse_spike_gamma(const Eigen::SparseMatrixBase<Derived> &A,
-                        const Opt &opt)
+make_sparse_col_spike_gamma(const Eigen::SparseMatrixBase<Derived> &A,
+                            const Opt &opt)
 {
     const auto n1 = A.rows();
     const auto n2 = A.cols();
 
     using Mat = Eigen::SparseMatrix<scalar_t, Eigen::ColMajor>;
-    using Param = param_spike_gamma_t<Mat, tag_param_sparse>;
+    using Param = param_col_spike_gamma_t<Mat, tag_param_sparse>;
 
     Param ret(n1, n2, opt);
     const scalar_t eps = 1e-4;
+
+    // just add epsilon * A to reserve spots
+    using Dense = Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
+    Mat Acol =
+        (Dense::Ones(1, n1) * A).unaryExpr([](const auto &x) { return 1.0; });
 
     // just add epsilon * A to reserve spots
     initialize(A, ret.alpha, eps);
@@ -285,7 +300,10 @@ make_sparse_spike_gamma(const Eigen::SparseMatrixBase<Derived> &A,
     initialize(A, ret.grad_alpha_aux, eps);
     initialize(A, ret.grad_beta, eps);
 
-    impl_initialize_param(ret, tag_param_spike_gamma());
+    initialize(Acol, ret.alpha_aux_col, eps);
+    initialize(Acol, ret.grad_alpha_aux_col, eps);
+
+    impl_initialize_param(ret, tag_param_col_spike_gamma());
     resolve_param(ret);
     resolve_hyperparam(ret);
     return ret;
@@ -296,9 +314,15 @@ template <typename Parameter, typename scalar_t>
 void
 impl_update_param_sgd(Parameter &P,
                       const scalar_t rate,
-                      const tag_param_spike_gamma)
+                      const tag_param_col_spike_gamma)
 {
-    P.alpha_aux += update_adam(P.adam_alpha_aux, P.grad_alpha_aux) * rate;
+    const typename Parameter::scalar_t denom = P.rows();
+
+    P.grad_alpha_aux_col = P.onesN1 * P.grad_alpha_aux / denom;
+
+    P.alpha_aux_col +=
+        update_adam(P.adam_alpha_aux_col, P.grad_alpha_aux_col) * rate;
+
     P.beta += update_adam(P.adam_beta, P.grad_beta) * rate;
     resolve_param(P);
 }
@@ -307,7 +331,7 @@ template <typename Parameter, typename scalar_t>
 void
 impl_update_hyperparam_sgd(Parameter &P,
                            const scalar_t rate,
-                           const tag_param_spike_gamma)
+                           const tag_param_col_spike_gamma)
 {
     P.pi_aux += update_adam(P.adam_pi_aux, P.grad_pi_aux) * rate;
     resolve_hyperparam(P);
@@ -316,8 +340,11 @@ impl_update_hyperparam_sgd(Parameter &P,
 // mean and variance
 template <typename Parameter>
 void
-impl_resolve_param(Parameter &P, const tag_param_spike_gamma)
+impl_resolve_param(Parameter &P, const tag_param_col_spike_gamma)
 {
+    for (auto r = 0; r < P.rows(); ++r)
+        P.alpha_aux.row(r) = P.alpha_aux_col;
+
     P.alpha = P.alpha_aux.unaryExpr(P.resolve_spike_op);
     P.mu = P.beta.unaryExpr(P.resolve_mu_op);
     P.theta = P.alpha.cwiseProduct(P.mu);
@@ -326,7 +353,7 @@ impl_resolve_param(Parameter &P, const tag_param_spike_gamma)
 
 template <typename Parameter>
 void
-impl_resolve_hyperparam(Parameter &P, const tag_param_spike_gamma)
+impl_resolve_hyperparam(Parameter &P, const tag_param_col_spike_gamma)
 {
     if (P.pi_aux > P.pi_lodds_ub)
         P.pi_aux = P.pi_lodds_ub;
@@ -341,7 +368,7 @@ void
 impl_perturb_param(Parameter &P,
                    const scalar_t sd,
                    RNG &rng,
-                   const tag_param_spike_gamma)
+                   const tag_param_col_spike_gamma)
 {
     dqrng::normal_distribution Norm(0, 1);
     auto rnorm = [&rng, &Norm, &sd](const auto &x) -> scalar_t {
@@ -353,16 +380,18 @@ impl_perturb_param(Parameter &P,
 
 template <typename Parameter, typename scalar_t>
 void
-impl_perturb_param(Parameter &P, const scalar_t sd, const tag_param_spike_gamma)
+impl_perturb_param(Parameter &P,
+                   const scalar_t sd,
+                   const tag_param_col_spike_gamma)
 {
     dqrng::xoshiro256plus rng;
     ;
-    impl_perturb_param(P, sd, rng, tag_param_spike_gamma());
+    impl_perturb_param(P, sd, rng, tag_param_col_spike_gamma());
 }
 
 template <typename Parameter>
 void
-impl_check_nan_param(Parameter &P, const tag_param_spike_gamma)
+impl_check_nan_param(Parameter &P, const tag_param_col_spike_gamma)
 {
     auto is_nan = [](const auto &x) { return !std::isfinite(x); };
     auto num_nan = [&is_nan](const auto &M) {
@@ -376,21 +405,21 @@ impl_check_nan_param(Parameter &P, const tag_param_spike_gamma)
 
 template <typename Parameter>
 const auto &
-impl_mean_param(Parameter &P, const tag_param_spike_gamma)
+impl_mean_param(Parameter &P, const tag_param_col_spike_gamma)
 {
     return P.theta;
 }
 
 template <typename Parameter>
 auto
-impl_log_odds_param(Parameter &P, const tag_param_spike_gamma)
+impl_log_odds_param(Parameter &P, const tag_param_col_spike_gamma)
 {
-    return P.alpha_aux;
+    return P.alpha_aux_col;
 }
 
 template <typename Parameter>
 const auto &
-impl_var_param(Parameter &P, const tag_param_spike_gamma)
+impl_var_param(Parameter &P, const tag_param_col_spike_gamma)
 {
     return P.theta_var;
 }
@@ -403,7 +432,7 @@ impl_eval_param_sgd(Parameter &P,
                     const M1 &G1,
                     const M2 &G2,
                     const M3 &Nobs,
-                    const tag_param_spike_gamma)
+                    const tag_param_col_spike_gamma)
 {
     ////////////////////////////////////////////////////////////////
     // gradient w.r.t. alpha
@@ -438,7 +467,7 @@ impl_eval_hyperparam_sgd(Parameter &P,
                          const M1 &G1,
                          const M2 &G2,
                          const M3 &Nobs,
-                         const tag_param_spike_gamma)
+                         const tag_param_col_spike_gamma)
 {
     using scalar_t = typename Parameter::scalar_t;
     const scalar_t ntot = Nobs.sum();
@@ -470,12 +499,12 @@ void
 impl_write_param(Parameter &P,
                  const std::string hdr,
                  const std::string gz,
-                 const tag_param_spike_gamma)
+                 const tag_param_col_spike_gamma)
 {
     write_data_file((hdr + ".theta" + gz), P.theta);
     write_data_file((hdr + ".theta_var" + gz), P.theta_var);
     typename Parameter::data_t temp =
-        P.alpha_aux.unaryExpr([&P](const auto &x) { return P.pi_aux + x; });
+        P.alpha_aux_col.unaryExpr([&P](const auto &x) { return P.pi_aux + x; });
     write_data_file((hdr + ".lodds" + gz), temp);
     write_data_file((hdr + ".spike" + gz), P.alpha);
     write_data_file((hdr + ".slab" + gz), P.mu);

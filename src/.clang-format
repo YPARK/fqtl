@@ -1,90 +1,67 @@
 ---
-Language:        Cpp
-# BasedOnStyle:  Google
-AccessModifierOffset: -1
+BasedOnStyle: WebKit
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
-AlignEscapedNewlinesLeft: true
-AlignOperands:   true
+AlignEscapedNewlines: Left
+AlignOperands: false
 AlignTrailingComments: true
-AllowAllParametersOfDeclarationOnNextLine: true
+ExperimentalAutoDetectBinPacking: false
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: true
-AllowShortLoopsOnASingleLine: true
-AlwaysBreakAfterDefinitionReturnType: None
-AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: true
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: true
-BinPackArguments: true
-BinPackParameters: true
-BraceWrapping:   
-  AfterClass:      false
-  AfterControlStatement: false
-  AfterEnum:       false
-  AfterFunction:   false
-  AfterNamespace:  false
-  AfterObjCDeclaration: false
-  AfterStruct:     false
-  AfterUnion:      false
-  BeforeCatch:     false
-  BeforeElse:      false
-  IndentBraces:    false
+BinPackArguments: false
+BinPackParameters: false
 BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Attach
-BreakBeforeTernaryOperators: true
-BreakConstructorInitializersBeforeComma: false
-ColumnLimit:     80
-CommentPragmas:  '^ IWYU pragma:'
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
-ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 4
-Cpp11BracedListStyle: true
-DerivePointerAlignment: true
-DisableFormat:   false
-ExperimentalAutoDetectBinPacking: false
-ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
-IncludeCategories: 
-  - Regex:           '^<.*\.h>'
-    Priority:        1
-  - Regex:           '^<.*'
-    Priority:        2
-  - Regex:           '.*'
-    Priority:        3
-IndentCaseLabels: true
-IndentWidth:     2
-IndentWrappedFunctionNames: false
-KeepEmptyLinesAtTheStartOfBlocks: false
-MacroBlockBegin: ''
-MacroBlockEnd:   ''
-MaxEmptyLinesToKeep: 1
+BreakBeforeBraces: WebKit
+BreakBeforeTernaryOperators: false
+BreakStringLiterals: false
+PenaltyBreakBeforeFirstCallParameter: 1000
+CompactNamespaces: true
+DerivePointerAlignment: false
+DisableFormat: false
+ForEachMacros:
+  - SLIST_FOREACH
+  - SLIST_FOREACH_SAFE
+  - LIST_FOREACH
+  - LIST_FOREACH_SAFE
+  - STAILQ_FOREACH
+  - STAILQ_FOREACH_SAFE
+  - TAILQ_FOREACH
+  - TAILQ_FOREACH_SAFE
+  - TAILQ_FOREACH_REVERSE
+  - TAILQ_FOREACH_REVERSE_SAFE
+  - RB_FOREACH
+  - RB_FOREACH_SAFE
+  - RB_FOREACH_FROM
+  - RB_FOREACH_REVERSE
+  - RB_FOREACH_REVERSE_FROM
+  - RB_FOREACH_REVERSE_SAFE
+  - FOREACH_THREAD_IN_PROC
+  - FOREACH_PROC_IN_SYSTEM
+  - FOREACH_PRISON_CHILD
+  - FOREACH_PRISON_DESCENDANT
+  - FOREACH_PRISON_DESCENDANT_LOCKED
+  - FOREACH_PRISON_DESCENDANT_LOCKED_LEVEL
+  - MNT_VNODE_FOREACH_ALL
+  - MNT_VNODE_FOREACH_ACTIVE
+IndentCaseLabels: false
+IndentPPDirectives: None
+Language: Cpp
 NamespaceIndentation: None
-ObjCBlockIndentWidth: 2
-ObjCSpaceAfterProperty: false
-ObjCSpaceBeforeProtocolList: false
-PenaltyBreakBeforeFirstCallParameter: 1
-PenaltyBreakComment: 300
-PenaltyBreakFirstLessLess: 120
-PenaltyBreakString: 1000
-PenaltyExcessCharacter: 1000000
-PenaltyReturnTypeOnItsOwnLine: 200
-PointerAlignment: Left
-ReflowComments:  true
-SortIncludes:    true
+PointerAlignment: Right
+ContinuationIndentWidth: 4
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 80
+UseTab: Never
 SpaceAfterCStyleCast: false
-SpaceBeforeAssignmentOperators: true
-SpaceBeforeParens: ControlStatements
-SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments: 2
-SpacesInAngles:  false
-SpacesInContainerLiterals: true
-SpacesInCStyleCastParentheses: false
-SpacesInParentheses: false
-SpacesInSquareBrackets: false
-Standard:        Auto
-TabWidth:        8
-UseTab:          Never
+SortIncludes: false
+KeepEmptyLinesAtTheStartOfBlocks: true
 ...
-

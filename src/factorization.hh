@@ -20,255 +20,286 @@ struct get_factorization_type;
 
 template <typename UParam, typename VParam, typename Scalar>
 struct get_factorization_type<
-    UParam, VParam, Scalar,
+    UParam,
+    VParam,
+    Scalar,
     Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>> {
-  using type = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
+    using type = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
 };
 
-// template <typename UParam, typename VParam, typename Scalar>
-// struct get_factorization_type<UParam, VParam, Scalar,
-//                               Eigen::SparseMatrix<Scalar>> {
-//   using type = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
-// };
+template <typename UParam, typename VParam, typename Scalar>
+struct get_factorization_type<UParam,
+                              VParam,
+                              Scalar,
+                              Eigen::SparseMatrix<Scalar>> {
+    using type = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
+};
 
 template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta(const Eigen::MatrixBase<Derived> &data, UParam &u,
-                            VParam &v) {
-  using Scalar = typename Derived::Scalar;
-  using Fact = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
-  return Fact(data.derived(), u, v);
+auto
+make_factorization_eta(const Eigen::MatrixBase<Derived> &data,
+                       UParam &u,
+                       VParam &v)
+{
+    using Scalar = typename Derived::Scalar;
+    using Fact = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
+    return Fact(data.derived(), u, v);
 }
-
-// template <typename Derived, typename UParam, typename VParam>
-// auto make_factorization_eta(const Eigen::SparseMatrixBase<Derived> &data,
-//                             UParam &u, VParam &v) {
-//   using Scalar = typename Derived::Scalar;
-//   using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
-//   return Fact(data.derived(), u, v);
-// }
 
 template <typename Derived, typename UParam, typename VParam>
-auto make_factorization_eta_ptr(const Eigen::MatrixBase<Derived> &data,
-                                UParam &u, VParam &v) {
-  using Scalar = typename Derived::Scalar;
-  using Fact = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
-  return std::make_shared<Fact>(data.derived(), u, v);
+auto
+make_factorization_eta(const Eigen::SparseMatrixBase<Derived> &data,
+                       UParam &u,
+                       VParam &v)
+{
+    using Scalar = typename Derived::Scalar;
+    using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
+    return Fact(data.derived(), u, v);
 }
 
-// template <typename Derived, typename UParam, typename VParam>
-// auto make_factorization_eta_ptr(const Eigen::SparseMatrixBase<Derived> &data,
-//                                 UParam &u, VParam &v) {
-//   using Scalar = typename Derived::Scalar;
-//   using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
-//   return std::make_shared<Fact>(data.derived(), u, v);
-// }
+template <typename Derived, typename UParam, typename VParam>
+auto
+make_factorization_eta_ptr(const Eigen::MatrixBase<Derived> &data,
+                           UParam &u,
+                           VParam &v)
+{
+    using Scalar = typename Derived::Scalar;
+    using Fact = factorization_t<DenseReprMat<Scalar>, UParam, VParam>;
+    return std::make_shared<Fact>(data.derived(), u, v);
+}
+
+template <typename Derived, typename UParam, typename VParam>
+auto
+make_factorization_eta_ptr(const Eigen::SparseMatrixBase<Derived> &data,
+                           UParam &u,
+                           VParam &v)
+{
+    using Scalar = typename Derived::Scalar;
+    using Fact = factorization_t<SparseReprMat<Scalar>, UParam, VParam>;
+    return std::make_shared<Fact>(data.derived(), u, v);
+}
 
 template <typename Repr, typename UParam, typename VParam>
 struct factorization_t {
-  using UParamMat = typename param_traits<UParam>::Matrix;
-  using VParamMat = typename param_traits<VParam>::Matrix;
-  using DataMat = typename Repr::DataMatrix;
-  using Scalar = typename DataMat::Scalar;
-  using Index = typename DataMat::Index;
+    using UParamMat = typename param_traits<UParam>::Matrix;
+    using VParamMat = typename param_traits<VParam>::Matrix;
+    using DataMat = typename Repr::DataMatrix;
+    using Scalar = typename DataMat::Scalar;
+    using Index = typename DataMat::Index;
 
-  explicit factorization_t(const DataMat & data, UParam &u, VParam &v)
-      : Eta(make_gaus_repr(data)),
-        U(u),
-        V(v),
-        n(U.rows()),
-        m(V.rows()),
-        k(U.cols()),
-        nobs_u(n, k),
-        nobs_v(m, k),
-        u_sq(n, k),
-        v_sq(m, k),
-        grad_u_mean(n, k),
-        grad_u_var(n, k),
-        grad_v_mean(m, k),
-        grad_v_var(m, k) {
-    copy_matrix(mean_param(u), nobs_u);
-    copy_matrix(mean_param(v), nobs_v);
+    explicit factorization_t(const DataMat &data, UParam &u, VParam &v)
+        : Eta(make_gaus_repr(data))
+        , U(u)
+        , V(v)
+        , n(U.rows())
+        , m(V.rows())
+        , k(U.cols())
+        , nobs_u(n, k)
+        , nobs_v(m, k)
+        , u_sq(n, k)
+        , v_sq(m, k)
+        , grad_u_mean(n, k)
+        , grad_u_var(n, k)
+        , grad_v_mean(m, k)
+        , grad_v_var(m, k)
+    {
+        copy_matrix(mean_param(u), nobs_u);
+        copy_matrix(mean_param(v), nobs_v);
 
-    using Dense = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
-    Dense ones_mk = Dense::Ones(m, k);
-    Dense ones_nk = Dense::Ones(n, k);
+        using Dense = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
+        Dense ones_mk = Dense::Ones(m, k);
+        Dense ones_nk = Dense::Ones(n, k);
 
-    XY_nobs(data, ones_mk, nobs_u);
-    XtY_nobs(data, ones_nk, nobs_v);
+        XY_nobs(data, ones_mk, nobs_u);
+        XtY_nobs(data, ones_nk, nobs_v);
 
-    copy_matrix(mean_param(u), u_sq);
-    copy_matrix(mean_param(v), v_sq);
-    copy_matrix(mean_param(u), grad_u_mean);
-    copy_matrix(var_param(u), grad_u_var);
-    copy_matrix(mean_param(v), grad_v_mean);
-    copy_matrix(var_param(v), grad_v_var);
+        copy_matrix(mean_param(u), u_sq);
+        copy_matrix(mean_param(v), v_sq);
+        copy_matrix(mean_param(u), grad_u_mean);
+        copy_matrix(var_param(u), grad_u_var);
+        copy_matrix(mean_param(v), grad_v_mean);
+        copy_matrix(var_param(v), grad_v_var);
 
-    setConstant(u_sq, 0.0);
-    setConstant(v_sq, 0.0);
+        setConstant(u_sq, 0.0);
+        setConstant(v_sq, 0.0);
 
-    resolve_param(U);
-    resolve_param(V);
+        resolve_param(U);
+        resolve_param(V);
 
-    resolve();
-  }
+        resolve();
+    }
 
-  inline void jitter(const Scalar sd) {
-    perturb_param(U, sd);
-    perturb_param(V, sd);
-    resolve_param(U);
-    resolve_param(V);
-    resolve();
-  }
+    inline void jitter(const Scalar sd)
+    {
+        perturb_param(U, sd);
+        perturb_param(V, sd);
+        resolve_param(U);
+        resolve_param(V);
+        resolve();
+    }
 
-  template <typename Rng>
-  inline void jitter(const Scalar sd, Rng &rng) {
-    perturb_param(U, sd, rng);
-    perturb_param(V, sd, rng);
-    resolve_param(U);
-    resolve_param(V);
-    resolve();
-  }
+    template <typename Rng>
+    inline void jitter(const Scalar sd, Rng &rng)
+    {
+        perturb_param(U, sd, rng);
+        perturb_param(V, sd, rng);
+        resolve_param(U);
+        resolve_param(V);
+        resolve();
+    }
 
-  inline void init_by_svd(const DataMat &data, const Scalar sd) {
-    Eigen::JacobiSVD<DataMat> svd(data,
-                                  Eigen::ComputeThinU | Eigen::ComputeThinV);
-    DataMat uu = svd.matrixU() * sd;
-    DataMat vv = svd.matrixV() * sd;
-    vv = vv * svd.singularValues().asDiagonal();
+    inline void init_by_svd(const DataMat &data, const Scalar sd)
+    {
+        Eigen::JacobiSVD<DataMat> svd(data,
+                                      Eigen::ComputeThinU |
+                                          Eigen::ComputeThinV);
+        DataMat uu = svd.matrixU() * sd;
+        DataMat vv = svd.matrixV() * sd;
+        vv = vv * svd.singularValues().asDiagonal();
+        U.beta = uu.leftCols(k);
+        V.beta = vv.leftCols(k);
+        resolve_param(U);
+        resolve_param(V);
+        resolve();
+    }
 
-    U.beta.setZero();
-    V.beta.setZero();
-    U.beta.leftCols(k) = uu.leftCols(k);
-    V.beta.leftCols(k) = vv.leftCols(k);
+    Repr Eta;
+    UParam &U;
+    VParam &V;
 
-    resolve_param(U);
-    resolve_param(V);
-    resolve();
-  }
+    const Index n;
+    const Index m;
+    const Index k;
 
-  Repr Eta;
-  UParam &U;
-  VParam &V;
+    UParamMat nobs_u;
+    VParamMat nobs_v;
 
-  const Index n;
-  const Index m;
-  const Index k;
+    UParamMat u_sq;
+    VParamMat v_sq;
 
-  UParamMat nobs_u;
-  VParamMat nobs_v;
+    UParamMat grad_u_mean;
+    UParamMat grad_u_var;
 
-  UParamMat u_sq;
-  VParamMat v_sq;
+    VParamMat grad_v_mean;
+    VParamMat grad_v_var;
 
-  UParamMat grad_u_mean;
-  UParamMat grad_u_var;
+    template <typename RNG>
+    inline const DataMat &sample(RNG &rng)
+    {
+        return sample_repr(Eta, rng);
+    }
+    template <typename RNG>
+    inline const DataMat &sample_zeromean(RNG &rng)
+    {
+        return sample_repr_zeromean(Eta, rng);
+    }
 
-  VParamMat grad_v_mean;
-  VParamMat grad_v_var;
+    const DataMat &repr_mean() const { return Eta.get_mean(); }
+    const DataMat &repr_var() const { return Eta.get_var(); }
 
-  template <typename RNG>
-  inline const auto &sample(const RNG &rng) {
-    return sample_repr(Eta, rng);
-  }
+    inline void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
 
-  const auto &repr_mean() { return Eta.get_mean(); }
-  const auto &repr_var() { return Eta.get_var(); }
+    // mean = E[U] * E[V']
+    // var  = Var[U] * Var[V'] + E[U]^2 * Var[V'] + Var[U] * E[V']^2
+    inline void resolve()
+    {
+        update_mean(Eta, U.theta * V.theta.transpose());
 
-  inline void add_sgd(const DataMat &llik) { update_repr(Eta, llik); }
+        u_sq = U.theta.cwiseProduct(U.theta);
+        v_sq = V.theta.cwiseProduct(V.theta);
 
-  // mean = E[U] * E[V']
-  // var  = Var[U] * Var[V'] + E[U]^2 * Var[V'] + Var[U] * E[V']^2
-  inline void resolve() {
-    update_mean(Eta, U.theta * V.theta.transpose());
+        update_var(Eta,
+                   U.theta_var * V.theta_var.transpose() +
+                       u_sq * V.theta_var.transpose() +
+                       U.theta_var * v_sq.transpose());
+    }
 
-    u_sq = U.theta.cwiseProduct(U.theta);
-    v_sq = V.theta.cwiseProduct(V.theta);
+    ///////////////////////////////////////////////////////////////////////
+    // (1) Gradient w.r.t. E[U]                                          //
+    //     G1 * partial mean / partial E[U] = G1 * E[V]                  //
+    //     G2 * partial var  / partial E[U] = 2 * (G2 * Var[V]) .* E[U]  //
+    //                                                                   //
+    // (2) Gradient w.r.t. Var[U]                                        //
+    //     G2 * partial var / partial var[U] = G2 * Var[V]               //
+    //                                      += G2 * E[V]^2               //
+    // (3) Gradient w.r.t. E[V]                                          //
+    //     G1 * partial mean / partial E[V] = G1' * E[U]                 //
+    //     G2 * partial var  / partial E[V] = 2 * (G2' * Var[U]) .* E[V] //
+    //                                                                   //
+    // (4) Gradient w.r.t. Var[U]                                        //
+    //     G2 * partial var / partial var[U] = G2' * Var[U]              //
+    //                                      += G2' * E[U]^2              //
+    ///////////////////////////////////////////////////////////////////////
 
-    update_var(Eta, U.theta_var * V.theta_var.transpose() +
-                        u_sq * V.theta_var.transpose() +
-                        U.theta_var * v_sq.transpose());
-  }
+    inline void _compute_sgd_u()
+    {
+        grad_u_mean = Eta.get_grad_type1() * V.theta +
+            U.theta.cwiseProduct(Eta.get_grad_type2() * V.theta_var *
+                                 static_cast<Scalar>(2.0));
 
-  ///////////////////////////////////////////////////////////////////////
-  // (1) Gradient w.r.t. E[U]                                          //
-  //     G1 * partial mean / partial E[U] = G1 * E[V]                  //
-  //     G2 * partial var  / partial E[U] = 2 * (G2 * Var[V]) .* E[U]  //
-  //                                                                   //
-  // (2) Gradient w.r.t. Var[U]                                        //
-  //     G2 * partial var / partial var[U] = G2 * Var[V]               //
-  //                                      += G2 * E[V]^2               //
-  // (3) Gradient w.r.t. E[V]                                          //
-  //     G1 * partial mean / partial E[V] = G1' * E[U]                 //
-  //     G2 * partial var  / partial E[V] = 2 * (G2' * Var[U]) .* E[V] //
-  //                                                                   //
-  // (4) Gradient w.r.t. Var[U]                                        //
-  //     G2 * partial var / partial var[U] = G2' * Var[U]              //
-  //                                      += G2' * E[U]^2              //
-  ///////////////////////////////////////////////////////////////////////
+        grad_u_var =
+            Eta.get_grad_type2() * v_sq + Eta.get_grad_type2() * V.theta_var;
+    }
 
-  inline void _compute_sgd_u() {
-    grad_u_mean = Eta.get_grad_type1() * V.theta +
-                  U.theta.cwiseProduct(Eta.get_grad_type2() * V.theta_var *
-                                       static_cast<Scalar>(2.0));
+    inline void _compute_sgd_v()
+    {
+        grad_v_mean = Eta.get_grad_type1().transpose() * U.theta +
+            V.theta.cwiseProduct(Eta.get_grad_type2().transpose() *
+                                 U.theta_var * static_cast<Scalar>(2.0));
 
-    grad_u_var =
-        Eta.get_grad_type2() * v_sq + Eta.get_grad_type2() * V.theta_var;
-  }
+        grad_v_var = Eta.get_grad_type2().transpose() * u_sq +
+            Eta.get_grad_type2().transpose() * U.theta_var;
+    }
 
-  inline void _compute_sgd_v() {
-    grad_v_mean = Eta.get_grad_type1().transpose() * U.theta +
-                  V.theta.cwiseProduct(Eta.get_grad_type2().transpose() *
-                                       U.theta_var * static_cast<Scalar>(2.0));
+    inline void eval_sgd()
+    {
+        Eta.summarize();
 
-    grad_v_var = Eta.get_grad_type2().transpose() * u_sq +
-                 Eta.get_grad_type2().transpose() * U.theta_var;
-  }
+        u_sq = U.theta.cwiseProduct(U.theta);
+        v_sq = V.theta.cwiseProduct(V.theta);
 
-  inline void eval_sgd() {
-    Eta.summarize();
+        this->_compute_sgd_u(); // gradient for u
+        eval_param_sgd(U, grad_u_mean, grad_u_var, nobs_u);
+        this->_compute_sgd_v(); // gradient for v
+        eval_param_sgd(V, grad_v_mean, grad_v_var, nobs_v);
+    }
 
-    u_sq = U.theta.cwiseProduct(U.theta);
-    v_sq = V.theta.cwiseProduct(V.theta);
+    inline void eval_hyper_sgd()
+    {
+        Eta.summarize();
 
-    this->_compute_sgd_u();  // gradient for u
-    eval_param_sgd(U, grad_u_mean, grad_u_var, nobs_u);
-    this->_compute_sgd_v();  // gradient for v
-    eval_param_sgd(V, grad_v_mean, grad_v_var, nobs_v);
-  }
+        u_sq = U.theta.cwiseProduct(U.theta);
+        v_sq = V.theta.cwiseProduct(V.theta);
 
-  inline void eval_hyper_sgd() {
-    Eta.summarize();
+        this->_compute_sgd_u(); // gradient for u
+        eval_hyperparam_sgd(U, grad_u_mean, grad_u_var, nobs_u);
+        this->_compute_sgd_v(); // gradient for v
+        eval_hyperparam_sgd(V, grad_v_mean, grad_v_var, nobs_v);
+    }
 
-    u_sq = U.theta.cwiseProduct(U.theta);
-    v_sq = V.theta.cwiseProduct(V.theta);
+    inline void update_sgd(const Scalar rate)
+    {
+        update_param_sgd(U, rate);
+        update_param_sgd(V, rate);
+        resolve_param(U);
+        resolve_param(V);
+        this->resolve();
+    }
 
-    this->_compute_sgd_u();  // gradient for u
-    eval_hyperparam_sgd(U, grad_u_mean, grad_u_var, nobs_u);
-    this->_compute_sgd_v();  // gradient for v
-    eval_hyperparam_sgd(V, grad_v_mean, grad_v_var, nobs_v);
-  }
+    inline void update_hyper_sgd(const Scalar rate)
+    {
+        update_hyperparam_sgd(U, rate);
+        update_hyperparam_sgd(V, rate);
+        resolve_hyperparam(U);
+        resolve_hyperparam(V);
+        resolve_param(U);
+        resolve_param(V);
+        this->resolve();
+    }
 
-  inline void update_sgd(const Scalar rate) {
-    update_param_sgd(U, rate);
-    update_param_sgd(V, rate);
-    resolve_param(U);
-    resolve_param(V);
-    this->resolve();
-  }
-
-  inline void update_hyper_sgd(const Scalar rate) {
-    update_hyperparam_sgd(U, rate);
-    update_hyperparam_sgd(V, rate);
-    resolve_hyperparam(U);
-    resolve_hyperparam(V);
-    resolve_param(U);
-    resolve_param(V);
-    this->resolve();
-  }
-
-  struct square_op_t {
-    Scalar operator()(const Scalar &x) const { return x * x; }
-  } square_op;
+    struct square_op_t {
+        Scalar operator()(const Scalar &x) const { return x * x; }
+    } square_op;
 };
 
 #endif

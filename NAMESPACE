@@ -1,8 +1,6 @@
 useDynLib(fqtl)
 import(RcppEigen)
 import(RcppProgress)
-import(Matrix)
-import(methods)
 importFrom(Rcpp, evalCpp)
 importFrom(utils, read.table)
 exportPattern("^[[:alpha:]]+")

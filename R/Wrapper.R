@@ -59,7 +59,7 @@
 #'
 #' @return a list of variational inference results
 #'
-#' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{yongjin.peter.park@@gmail.com}
+#' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{ypp.ubc@@gmail.com}
 #'
 #' @examples
 #'
@@ -368,7 +368,7 @@ fit.fqtl <- function(y,
 #' 
 #' par(mfrow = c(1, K))
 #' for(.k in 1:K) {
-#'   plot(y.decon[, .k], eta[, .k], pch = 19, color = 'gray50')
+#'   plot(y.decon[, .k], eta[, .k], pch = 19, col = 'gray50')
 #' }
 #'
 #' @export
@@ -472,7 +472,7 @@ fit.fqtl.deconv <- function(y,
 #'
 #' @return a list of variational inference results
 #'
-#' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{yongjin.peter.park@@gmail.com}
+#' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{ypp.ubc@@gmail.com}
 #'
 #' @details
 #'
@@ -495,7 +495,7 @@ fit.fqtl.deconv <- function(y,
 #'
 #'  require(fqtl)
 #'  require(Matrix)
-#'  n <- 100
+#'  n <- 500
 #'  m <- 100
 #'  k <- 3
 #'  p <- 200
@@ -656,7 +656,7 @@ fit.fqtl.factorize <- function(y,
 #' Read binary PLINK format
 #' @param bed.header header for plink fileset
 #' @return a list of FAM, BIM, BED data.
-#' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{yongjin.peter.park@@gmail.com}
+#' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{ypp.ubc@@gmail.com}
 #' @export
 read.plink <- function(bed.header) {
 
@@ -668,10 +668,10 @@ read.plink <- function(bed.header) {
     stopifnot(file.exists(bed.file))
 
     ## 1. read .fam and .bim file
-    fam <- read.table(fam.file, header = FALSE, stringsAsFactors = FALSE)
-    bim <- read.table(bim.file, header = FALSE, stringsAsFactors = FALSE)
-    n <- dim(fam)[1]
-    n.snp <- dim(bim)[1]
+    fam <- data.table::fread(fam.file, header = FALSE, sep = "\t")
+    bim <- data.table::fread(bim.file, header = FALSE, sep = "\t")
+    n <- nrow(fam)
+    n.snp <- nrow(bim)
 
     ## 2. read .bed
     bed <- .Call('read_plink_bed', PACKAGE = 'fqtl', bed.file, n, n.snp)
