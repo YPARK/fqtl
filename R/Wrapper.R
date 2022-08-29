@@ -658,7 +658,7 @@ fit.fqtl.factorize <- function(y,
 #' @return a list of FAM, BIM, BED data.
 #' @author Yongjin Park, \email{ypp@@stat.ubc.ca}, \email{ypp.ubc@@gmail.com}
 #' @export
-read.plink <- function(bed.header) {
+read.plink <- function(bed.header, ...) {
 
     fam.file <- paste0(bed.header, '.fam')
     bim.file <- paste0(bed.header, '.bim')
@@ -668,8 +668,8 @@ read.plink <- function(bed.header) {
     stopifnot(file.exists(bed.file))
 
     ## 1. read .fam and .bim file
-    fam <- data.table::fread(fam.file, header = FALSE, sep = "\t")
-    bim <- data.table::fread(bim.file, header = FALSE, sep = "\t")
+    fam <- data.table::fread(fam.file, header = FALSE, ...)
+    bim <- data.table::fread(bim.file, header = FALSE, ...)
     n <- nrow(fam)
     n.snp <- nrow(bim)
 
